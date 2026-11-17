@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KU Schedule - ตารางเรียน มก.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-left">
+        <h1 class="brand-title">KU Schedule</h1>
+      </div>
+      <div class="header-right">
+        <div id="termSelectors" class="term-selectors">
+          <div class="selector-item">
+            <label for="yearSelect" id="yearLabel" class="selector-label">ปี</label>
+            <select id="yearSelect" class="term-select" title="เลือกปีการศึกษา"></select>
+          </div>
+          <div class="selector-item">
+            <label for="semesterSelect" id="semesterLabel" class="selector-label">ภาค</label>
+            <select id="semesterSelect" class="term-select" title="เลือกภาคเรียน">
+              <option value="1">ภาคต้น</option>
+              <option value="2">ภาคปลาย</option>
+              <option value="0">ภาคฤดูร้อน</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="lang-switch" id="langSwitch" title="เปลี่ยนภาษา / Switch Language">
+          <button type="button" id="langThBtn" class="lang-btn active" title="ภาษาไทย">TH</button>
+          <button type="button" id="langEnBtn" class="lang-btn" title="English">EN</button>
+        </div>
+
+        <button id="fetchBtn" class="btn btn-primary" title="ดึงข้อมูลตารางเรียนจาก My KU">
+          <svg class="icon spin-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19" />
+          </svg>
+          <span id="fetchBtnText">ดึงตารางเรียน</span>
+        </button>
+
+        <button id="exportBtn" class="btn btn-secondary" title="บันทึกตารางเรียนเป็นรูปภาพ (PNG)">
+          <svg class="icon spin-icon-export hidden" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19" />
+          </svg>
+          <svg class="icon export-default-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span id="exportBtnText">บันทึกรูป (PNG)</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="alertBox" class="alert-box hidden" role="alert">
+      <div class="alert-content">
+        <span id="alertMessage">กรุณาล็อกอินเข้าสู่ระบบ My KU ที่หน้าเว็บก่อนใช้งาน</span>
+      </div>
+      <a id="alertLink" href="https://my.ku.th" target="_blank" class="alert-btn">ไปยังหน้า my.ku.th ↗</a>
+    </div>
+
+    <main class="schedule-container">
+      <div id="scheduleCaptureArea" class="schedule-capture-area">
+        <div id="exportHeader" class="export-header hidden-on-screen">
+          <div class="export-header-left">
+            <div class="export-brand">KU Schedule</div>
+          </div>
+          <div class="export-header-right">
+            <span id="exportTerm" class="export-badge"></span>
+          </div>
+        </div>
+
+        <div class="schedule-table" id="scheduleTable">
+          <div class="time-header-row">
+            <div class="day-corner" id="dayCorner">วัน / เวลา</div>
+            <div class="hours-track" id="hoursTrack"></div>
+          </div>
+
+          <div class="days-body" id="daysBody"></div>
+        </div>
+
+        <div id="exportFooter" class="export-footer hidden-on-screen">
+          <span id="exportTimestamp">ข้อมูลจาก my.ku.th</span>
+          <span id="exportCredit" class="export-credit">สร้างโดย KU Schedule Chrome Extension</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="lib/html2canvas.min.js"></script>
+  <script src="i18n.js"></script>
+  <script src="schedule.js"></script>
+</body>
+
+</html>
