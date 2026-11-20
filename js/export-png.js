@@ -2,7 +2,7 @@
 
 // ตัดข้อความที่ยาวเกินความกว้างที่กำหนดและต่อท้ายด้วย "..." โดยไม่ตัดวรรณยุกต์/สระไทยขาด
 function fitTextWithEllipsis(text, maxWidth, font, ctx, currentLang = "th") {
-  if (!text || maxWidth <= 0) return text || "";
+  if (!text || maxWidth <= 0) return text;
 
   if (!ctx) {
     const canvas = document.createElement("canvas");
@@ -19,13 +19,8 @@ function fitTextWithEllipsis(text, maxWidth, font, ctx, currentLang = "th") {
   const targetWidth = maxWidth - ellipsisWidth;
   if (targetWidth <= 0) return ellipsis;
 
-  let graphemes;
-  if (typeof Intl !== "undefined" && Intl.Segmenter) {
-    const segmenter = new Intl.Segmenter(currentLang === "en" ? "en" : "th", { granularity: "grapheme" });
-    graphemes = Array.from(segmenter.segment(text), (s) => s.segment);
-  } else {
-    graphemes = Array.from(text);
-  }
+  const segmenter = new Intl.Segmenter(currentLang === "en" ? "en" : "th", { granularity: "grapheme" });
+  const graphemes = Array.from(segmenter.segment(text), (s) => s.segment);
 
   let low = 0;
   let high = graphemes.length;
@@ -48,8 +43,6 @@ function fitTextWithEllipsis(text, maxWidth, font, ctx, currentLang = "th") {
 async function handleExportPNG({
   currentCourses,
   currentStudentInfo,
-  yearSelect,
-  semesterSelect,
   currentLang,
   showAlertKey,
   hideAlert,
@@ -61,31 +54,17 @@ async function handleExportPNG({
     return;
   }
 
-  if (typeof html2canvas === "undefined") {
-    showAlertKey("EXPORT_LIB_MISSING");
-    return;
-  }
-
   hideAlert();
   setExportLoading(true);
 
   try {
-    if (document.fonts) {
-      await document.fonts.ready;
-    }
+    await document.fonts.ready;
 
     const exportTerm = document.getElementById("exportTerm");
     const exportTimestamp = document.getElementById("exportTimestamp");
 
-    const expYear = currentStudentInfo?.academicYear || yearSelect?.value || "";
-    const expSem = (currentStudentInfo?.semester != null && currentStudentInfo.semester !== "")
-      ? currentStudentInfo.semester
-      : (semesterSelect?.value || "");
-    if (expYear && expSem !== "") {
-      exportTerm.textContent = I18N[currentLang].exportTerm(expYear, formatSemester(expSem, currentLang));
-    } else {
-      exportTerm.textContent = "";
-    }
+    const semLabel = formatSemester(currentStudentInfo.semester, currentLang);
+    exportTerm.textContent = I18N[currentLang].exportTerm(currentStudentInfo.academicYear, semLabel);
 
     const now = new Date();
     const locale = currentLang === "en" ? "en-US" : "th-TH";
@@ -146,11 +125,9 @@ async function handleExportPNG({
 
         const formatExportText = (el, font, padOffset) => {
           const block = el.closest(".course-block");
-          const blockW = block
-            ? (block.getBoundingClientRect().width || block.offsetWidth || block.clientWidth)
-            : 0;
-          const availW = Math.max(20, (blockW || el.clientWidth || 180) - padOffset);
-          const fullText = el.getAttribute("title") || el.textContent || "";
+          const blockWidth = block ? block.getBoundingClientRect().width : 0;
+          const availW = Math.max(20, (blockWidth || el.clientWidth || 180) - padOffset);
+          const fullText = el.getAttribute("title") || el.textContent;
 
           el.textContent = fitTextWithEllipsis(fullText, availW, font, measurer, currentLang);
           el.style.overflow = "visible";
@@ -185,12 +162,7 @@ async function handleExportPNG({
 
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      const year = currentStudentInfo?.academicYear || yearSelect?.value || "";
-      const sem = (currentStudentInfo?.semester != null && currentStudentInfo.semester !== "")
-        ? currentStudentInfo.semester
-        : (semesterSelect?.value || "");
-      const semStr = sem !== "" ? `sem${sem}` : "";
-      const fileName = ["KU_Schedule", year, semStr].filter(Boolean).join("_") + ".png";
+      const fileName = getExportFileName(currentStudentInfo, "png");
 
       a.href = url;
       a.download = fileName;

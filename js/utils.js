@@ -2,32 +2,46 @@
 
 // แปลงค่าวันจาก API ให้เป็นรหัสวันมาตรฐาน (MON, TUE, ...)
 function normalizeDay(dayRaw) {
-  return dayRaw ? String(dayRaw).trim().toUpperCase() : null;
+  return dayRaw ? dayRaw.trim().toUpperCase() : null;
 }
 
 // คำนวณเวลาเริ่มและสิ้นสุดของวิชาเรียนในหน่วยนาทีนับจาก 00:00 น.
 function getCourseMinutes(c) {
-  const startMin = parseTime(c.time_from) ?? (typeof c.time_start === "number" ? c.time_start : null);
-  const endMin = parseTime(c.time_to) ?? (startMin !== null ? startMin + 60 : null);
-  return { startMin, endMin };
+  return {
+    startMin: parseTime(c.time_from),
+    endMin: parseTime(c.time_to),
+  };
 }
 
 // แปลงข้อความแสดงเวลา (เช่น "09:00", "9:00") เป็นนาที
 function parseTime(timeStr) {
   if (!timeStr) return null;
-  const parts = String(timeStr).trim().split(":");
-  if (parts.length < 2) return null;
-  const h = parseInt(parts[0], 10);
-  const m = parseInt(parts[1], 10);
-  if (isNaN(h) || isNaN(m)) return null;
-  return h * 60 + m;
+  const [h, m] = timeStr.split(":");
+  return parseInt(h, 10) * 60 + parseInt(m, 10);
 }
 
 // แปลงรหัสภาคเรียนเป็นข้อความแสดงผล (0 = ภาคฤดูร้อน, 1 = ภาคต้น, 2 = ภาคปลาย)
 function formatSemester(sem, lang) {
-  if (sem === null || sem === undefined) return "";
-  const s = sem.toString().trim();
-  return I18N[lang]?.semesters?.[s];
+  return I18N[lang].semesters[sem] || "";
+}
+
+// ดึงชื่อวิชาตามภาษาที่เลือก
+function getCourseName(course, lang) {
+  return lang === "en"
+    ? (course.subject_name_en || course.subject_name_th)
+    : (course.subject_name_th || course.subject_name_en);
+}
+
+// ดึงชื่อห้องเรียนตามภาษาที่เลือก
+function getCourseRoom(course, lang) {
+  return lang === "en"
+    ? (course.room_name_en || course.room_name_th)
+    : (course.room_name_th || course.room_name_en);
+}
+
+// สร้างชื่อไฟล์สำหรับส่งออก (ICS, PNG)
+function getExportFileName(info, ext) {
+  return `KU_Schedule_${info.academicYear}_sem${info.semester}.${ext}`;
 }
 
 // ป้องกัน XSS จากข้อความที่นำไปแทรกใน HTML

@@ -29,14 +29,13 @@ function generateICSContent(courses, lang) {
     "END:VTIMEZONE",
   ];
 
-  courses.forEach((c, idx) => {
-    const dayKey = normalizeDay(c.day_w);
-    const targetWeekday = dayMap[dayKey];
+  courses.forEach((c) => {
+    const targetWeekday = dayMap[normalizeDay(c.day_w)];
     if (targetWeekday === undefined) return;
 
     // วันเริ่มต้นและสิ้นสุดภาคเรียน (คำนวณตามเวลาท้องถิ่นประเทศไทย UTC+7)
-    const wsMs = c.weekstartday ? new Date(c.weekstartday).getTime() : NaN;
-    const weMs = c.weekendday ? new Date(c.weekendday).getTime() : NaN;
+    const wsMs = new Date(c.weekstartday).getTime();
+    const weMs = new Date(c.weekendday).getTime();
     if (isNaN(wsMs) || isNaN(weMs)) return;
 
     const wsDate = new Date(wsMs + 7 * 3600 * 1000);
@@ -49,17 +48,19 @@ function generateICSContent(courses, lang) {
 
     // คำนวณเวลาเริ่มและสิ้นสุดของวิชาเรียน
     const { startMin, endMin } = getCourseMinutes(c);
-    const sH = startMin !== null ? Math.floor(startMin / 60) : 8;
-    const sM = startMin !== null ? startMin % 60 : 0;
-    const eH = endMin !== null ? Math.floor(endMin / 60) : (sH + 1);
-    const eM = endMin !== null ? endMin % 60 : 0;
+    if (startMin === null || endMin === null) return;
+
+    const startHour = Math.floor(startMin / 60);
+    const startMinute = startMin % 60;
+    const endHour = Math.floor(endMin / 60);
+    const endMinute = endMin % 60;
 
     const y = firstClassDate.getUTCFullYear();
     const m = pad(firstClassDate.getUTCMonth() + 1);
     const d = pad(firstClassDate.getUTCDate());
 
-    const dtStart = `${y}${m}${d}T${pad(sH)}${pad(sM)}00`;
-    const dtEnd = `${y}${m}${d}T${pad(eH)}${pad(eM)}00`;
+    const dtStart = `${y}${m}${d}T${pad(startHour)}${pad(startMinute)}00`;
+    const dtEnd = `${y}${m}${d}T${pad(endHour)}${pad(endMinute)}00`;
 
     // วันสิ้นสุดการทำซ้ำ (UNTIL): สิ้นสุดเวลา 23:59:59 น. เวลาไทย (UTC+7) -> แปลงเป็น UTC = 16:59:59Z
     const weY = weDate.getUTCFullYear();
@@ -68,21 +69,18 @@ function generateICSContent(courses, lang) {
     const untilStr = `${weY}${weM}${weD}T165959Z`;
 
     // จัดเตรียมข้อมูลวิชา
-    const subjName = lang === "en" ? (c.subject_name_en || c.subject_name_th) : (c.subject_name_th || c.subject_name_en);
-    const room = lang === "en" ? (c.room_name_en || c.room_name_th) : (c.room_name_th || c.room_name_en);
-
-    // ตั้งชื่อหัวข้อ Event: "ชื่อวิชา - ห้องเรียน" (ถ้ามีห้องเรียนหรือให้ติดต่อผู้สอน ก็ต่อท้ายได้เลย)
-    const roomSuffix = room ? ` - ${room}` : "";
-    const summary = `${subjName}${roomSuffix}`.trim();
+    const subjName = getCourseName(c, lang);
+    const room = getCourseRoom(c, lang);
+    const summary = room ? `${subjName} - ${room}` : subjName;
 
     const escapeIcs = (str) =>
-      String(str || "")
+      String(str)
         .replace(/\\/g, "\\\\")
         .replace(/;/g, "\\;")
         .replace(/,/g, "\\,")
         .replace(/\r?\n/g, "\\n");
 
-    const uid = `ku-${c.section_id || idx}-${y}${m}${d}@kuschedule`;
+    const uid = `ku-${c.section_id}-${y}${m}${d}@kuschedule`;
     const reminderDesc = lang === "en" ? "Class reminder: 30 minutes before" : "แจ้งเตือนก่อนเริ่มเรียน 30 นาที";
 
     icsLines.push(
@@ -110,8 +108,6 @@ function generateICSContent(courses, lang) {
 async function handleExportICS({
   currentCourses,
   currentStudentInfo,
-  yearSelect,
-  semesterSelect,
   currentLang,
   showAlertKey,
   hideAlert,
@@ -132,12 +128,7 @@ async function handleExportICS({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
 
-    const year = currentStudentInfo?.academicYear || yearSelect?.value || "";
-    const sem = (currentStudentInfo?.semester != null && currentStudentInfo.semester !== "")
-      ? currentStudentInfo.semester
-      : (semesterSelect?.value || "");
-    const semStr = sem !== "" ? `sem${sem}` : "";
-    const fileName = ["KU_Schedule", year, semStr].filter(Boolean).join("_") + ".ics";
+    const fileName = getExportFileName(currentStudentInfo, "ics");
 
     a.href = url;
     a.download = fileName;
@@ -146,7 +137,9 @@ async function handleExportICS({
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 2000);
 
-    if (exportIcsBtnText) exportIcsBtnText.textContent = I18N[currentLang].exportIcsBtnSuccess;
+    if (exportIcsBtnText) {
+      exportIcsBtnText.textContent = I18N[currentLang].exportIcsBtnSuccess;
+    }
     setTimeout(() => {
       setExportIcsLoading(false);
     }, 1800);

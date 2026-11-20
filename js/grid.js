@@ -55,7 +55,7 @@ function renderScheduleGrid(courses, daysBody, currentLang) {
 
     const dayLabel = document.createElement("div");
     dayLabel.className = "day-label";
-    dayLabel.textContent = I18N[currentLang]?.days?.[dayDef.key] || dayDef.key;
+    dayLabel.textContent = I18N[currentLang].days[dayDef.key];
     dayRow.appendChild(dayLabel);
 
     const trackArea = document.createElement("div");
@@ -82,7 +82,7 @@ function renderScheduleGrid(courses, daysBody, currentLang) {
       const left = ((startMin - 480) / TOTAL_MINUTES) * 100;
       const width = ((endMin - startMin) / TOTAL_MINUTES) * 100;
 
-      const color = DAY_THEMES[dayDef.key] || DAY_THEMES["MON"];
+      const color = DAY_THEMES[dayDef.key];
 
       const block = document.createElement("div");
       block.className = "course-block";
@@ -91,19 +91,13 @@ function renderScheduleGrid(courses, daysBody, currentLang) {
       block.style.backgroundColor = color.bg;
       block.style.borderLeftColor = color.border;
 
-      const subjectName = (currentLang === "en"
-        ? (c.subject_name_en || c.subject_name_th)
-        : (c.subject_name_th || c.subject_name_en)) || "";
-
-      const roomText = (currentLang === "en"
-        ? (c.room_name_en || c.room_name_th)
-        : (c.room_name_th || c.room_name_en)) || "-";
-
-      const secText = c.section_code ? `Sec ${c.section_code}` : "";
-      const metaLine = secText ? `${roomText} | ${secText}` : roomText;
+      const subjectName = getCourseName(c, currentLang);
+      const room = getCourseRoom(c, currentLang);
+      const roomText = room || "-";
+      const metaLine = c.section_code ? `${roomText} | Sec ${c.section_code}` : roomText;
 
       block.innerHTML = `
-        <div class="course-code">${escapeHtml(c.subject_code || "")}</div>
+        <div class="course-code">${escapeHtml(c.subject_code)}</div>
         <div class="course-name" title="${escapeHtml(subjectName)}">${escapeHtml(subjectName)}</div>
         <div class="course-meta">${escapeHtml(metaLine)}</div>
       `;

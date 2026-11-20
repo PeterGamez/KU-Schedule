@@ -2,10 +2,9 @@
 
 // แปลงข้อมูลผลลัพธ์จาก API getEnrollYear ให้เป็น Array ของปี พ.ศ. (เรียงจากปีล่าสุดลงมา)
 function parseEnrollYears(data) {
-  if (!data?.enrollYear || !Array.isArray(data.enrollYear)) return [];
+  if (!data?.enrollYear) return [];
   return data.enrollYear
-    .map((item) => parseInt(item.year, 10))
-    .filter((y) => !isNaN(y))
+    .map((item) => Number(item.year))
     .sort((a, b) => b - a);
 }
 
