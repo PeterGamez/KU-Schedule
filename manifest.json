@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "KU Schedule - ตารางเรียน มก.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "ดึงและแสดงผลตารางเรียนของนิสิตผ่านระบบ My KU แบบ Client-Side 100% (Unofficial)",
   "permissions": [
     "scripting",

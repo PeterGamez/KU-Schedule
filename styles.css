@@ -40,7 +40,7 @@ body {
 }
 
 .app-container {
-  max-width: 1600px;
+  width: 100%;
   margin: 0 auto;
   padding-bottom: 30px;
 }
@@ -73,29 +73,6 @@ body {
   white-space: nowrap;
 }
 
-.student-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13.5px;
-  min-width: 0;
-}
-
-.badge {
-  background-color: rgba(255, 255, 255, 0.22);
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 13.5px;
-  white-space: nowrap;
-}
-
-.term-info {
-  color: #e2e8f0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 .header-right {
   display: flex;
@@ -247,6 +224,11 @@ body {
   min-width: 152px;
 }
 
+#exportIcsBtn {
+  width: 135px;
+  min-width: 135px;
+}
+
 .btn .icon {
   flex-shrink: 0;
 }
@@ -284,11 +266,14 @@ body {
 }
 
 @keyframes spin {
-  100% { transform: rotate(360deg); }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .spin-icon.spinning,
-.spin-icon-export.spinning {
+.spin-icon-export.spinning,
+.spin-icon-export-ics.spinning {
   animation: spin 0.8s linear infinite;
 }
 
@@ -427,13 +412,40 @@ body {
   color: #0f172a;
 }
 
-.day-mon .day-label { background-color: #FACC15; color: #0f172a; }
-.day-tue .day-label { background-color: #F472B6; color: #0f172a; }
-.day-wed .day-label { background-color: #4ADE80; color: #0f172a; }
-.day-thu .day-label { background-color: #FB923C; color: #0f172a; }
-.day-fri .day-label { background-color: #38BDF8; color: #0f172a; }
-.day-sat .day-label { background-color: #C084FC; color: #0f172a; }
-.day-sun .day-label { background-color: #F87171; color: #0f172a; }
+.day-mon .day-label {
+  background-color: #FACC15;
+  color: #0f172a;
+}
+
+.day-tue .day-label {
+  background-color: #F472B6;
+  color: #0f172a;
+}
+
+.day-wed .day-label {
+  background-color: #4ADE80;
+  color: #0f172a;
+}
+
+.day-thu .day-label {
+  background-color: #FB923C;
+  color: #0f172a;
+}
+
+.day-fri .day-label {
+  background-color: #38BDF8;
+  color: #0f172a;
+}
+
+.day-sat .day-label {
+  background-color: #C084FC;
+  color: #0f172a;
+}
+
+.day-sun .day-label {
+  background-color: #F87171;
+  color: #0f172a;
+}
 
 .day-track {
   flex: 1;
@@ -556,10 +568,6 @@ body {
   font-weight: 600;
 }
 
-.export-term {
-  font-size: 13px;
-  color: #f0fdf4;
-}
 
 .export-footer {
   display: none;
