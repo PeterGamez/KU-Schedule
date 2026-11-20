@@ -1,15 +1,11 @@
 // KU Schedule - Main Controller
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initSchedule);
-} else {
-  initSchedule();
-}
+initSchedule();
 
 async function initSchedule() {
   // DOM Elements
   const fetchBtn = document.getElementById("fetchBtn");
   const fetchBtnText = document.getElementById("fetchBtnText");
-  const spinIcon = fetchBtn ? fetchBtn.querySelector(".spin-icon") : null;
+  const spinIcon = document.querySelector("#fetchBtn .spin-icon");
 
   const exportBtn = document.getElementById("exportBtn");
   const exportBtnText = document.getElementById("exportBtnText");
@@ -52,25 +48,23 @@ async function initSchedule() {
   // เริ่มต้นสร้างหัวตาราง โหลดปีการศึกษา และภาษา
   initGridHeader(hoursTrack);
 
-  if (typeof chrome !== "undefined" && chrome.storage?.local) {
-    try {
-      const stored = await chrome.storage.local.get(["ku_schedule_lang"]);
-      if (stored?.ku_schedule_lang) {
-        currentLang = stored.ku_schedule_lang;
-      }
-    } catch (e) { }
-  }
+  try {
+    const stored = await chrome.storage.local.get(["ku_schedule_lang"]);
+    if (stored?.ku_schedule_lang) {
+      currentLang = stored.ku_schedule_lang;
+    }
+  } catch (e) { }
   setLanguage(currentLang);
 
   // โหลดแคชเดิม (ถ้ามี)
   const cached = await loadCachedSchedule();
-  if (cached?.courses && cached.studentInfo) {
+  if (cached && cached.courses && cached.studentInfo) {
     currentCourses = cached.courses;
     currentStudentInfo = cached.studentInfo;
     cachedEnrolledYears = cached.enrolledYears || null;
     initYearOptions(cached.studentInfo.academicYear, cachedEnrolledYears);
-    if (cached.studentInfo.semester != null && cached.studentInfo.semester !== "" && semesterSelect) {
-      semesterSelect.value = cached.studentInfo.semester.toString();
+    if (cached.studentInfo.semester != null && semesterSelect) {
+      semesterSelect.value = cached.studentInfo.semester;
     }
     renderScheduleGrid(cached.courses, daysBody, currentLang);
   } else {
@@ -82,22 +76,19 @@ async function initSchedule() {
   if (alertLink) {
     alertLink.addEventListener("click", (e) => {
       e.preventDefault();
-      if (typeof chrome !== "undefined" && chrome.tabs?.create) {
-        chrome.tabs.create({ url: "https://my.ku.th" });
-      } else {
-        window.open("https://my.ku.th", "_blank");
-      }
+      chrome.tabs.create({ url: "https://my.ku.th" });
     });
   }
 
-  if (fetchBtn) fetchBtn.addEventListener("click", () => handleFetch());
+  if (fetchBtn) {
+    fetchBtn.addEventListener("click", () => handleFetch());
+  }
+
   if (exportBtn) {
     exportBtn.addEventListener("click", () => {
       handleExportPNG({
         currentCourses,
         currentStudentInfo,
-        yearSelect,
-        semesterSelect,
         currentLang,
         showAlertKey,
         hideAlert,
@@ -106,13 +97,12 @@ async function initSchedule() {
       });
     });
   }
+
   if (exportIcsBtn) {
     exportIcsBtn.addEventListener("click", () => {
       handleExportICS({
         currentCourses,
         currentStudentInfo,
-        yearSelect,
-        semesterSelect,
         currentLang,
         showAlertKey,
         hideAlert,
@@ -122,8 +112,12 @@ async function initSchedule() {
     });
   }
 
-  if (langThBtn) langThBtn.addEventListener("click", () => setLanguage("th"));
-  if (langEnBtn) langEnBtn.addEventListener("click", () => setLanguage("en"));
+  if (langThBtn) {
+    langThBtn.addEventListener("click", () => setLanguage("th"));
+  }
+  if (langEnBtn) {
+    langEnBtn.addEventListener("click", () => setLanguage("en"));
+  }
 
   if (yearSelect) {
     yearSelect.addEventListener("change", () => {
@@ -131,6 +125,7 @@ async function initSchedule() {
       handleFetch();
     });
   }
+
   if (semesterSelect) {
     semesterSelect.addEventListener("change", () => {
       userHasSelectedTerm = true;
@@ -142,9 +137,7 @@ async function initSchedule() {
   function setLanguage(lang) {
     currentLang = lang === "en" ? "en" : "th";
     try {
-      if (typeof chrome !== "undefined" && chrome.storage?.local) {
-        chrome.storage.local.set({ ku_schedule_lang: currentLang });
-      }
+      chrome.storage.local.set({ ku_schedule_lang: currentLang });
     } catch (e) { }
 
     document.documentElement.lang = currentLang;
@@ -205,34 +198,35 @@ async function initSchedule() {
   // กำหนดตัวเลือกปีการศึกษาใน Dropdown
   function initYearOptions(defaultYear, yearList = null) {
     if (!yearSelect) return;
-    const now = new Date();
-    const currentBuddhistYear = now.getFullYear() + 543 - (now.getMonth() < 5 ? 1 : 0);
-    const yearsSet = new Set(Array.isArray(yearList) ? yearList : []);
 
-    const defNum = defaultYear ? parseInt(defaultYear, 10) : null;
-    if (defNum && !isNaN(defNum)) {
-      yearsSet.add(defNum);
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const defaultBuddhistYear = now.getFullYear() + 543 - (currentMonth < 5 ? 1 : 0);
+
+    const yearsSet = new Set(yearList || []);
+    if (defaultYear) {
+      yearsSet.add(Number(defaultYear));
     }
     if (yearsSet.size === 0) {
-      yearsSet.add(currentBuddhistYear);
+      yearsSet.add(defaultBuddhistYear);
     }
 
     const years = Array.from(yearsSet).sort((a, b) => b - a);
     const currentVal = yearSelect.value;
     yearSelect.innerHTML = "";
+
     years.forEach((y) => {
       const opt = document.createElement("option");
-      opt.value = y.toString();
-      opt.textContent = y.toString();
+      opt.value = y;
+      opt.textContent = y;
       yearSelect.appendChild(opt);
     });
 
-    if (defNum && years.includes(defNum)) {
-      yearSelect.value = defNum.toString();
-    } else if (currentVal && years.includes(parseInt(currentVal, 10))) {
-      yearSelect.value = currentVal;
+    const targetYear = Number(defaultYear) || Number(currentVal);
+    if (targetYear && years.includes(targetYear)) {
+      yearSelect.value = targetYear;
     } else {
-      yearSelect.value = years[0].toString();
+      yearSelect.value = years[0];
     }
   }
 
@@ -250,7 +244,8 @@ async function initSchedule() {
         return;
       }
 
-      const targetTab = tabs.find((t) => t.active) || tabs[0];
+      const activeTab = tabs.find((t) => t.active);
+      const targetTab = activeTab || tabs[0];
 
       const scriptRes = await chrome.scripting.executeScript({
         target: { tabId: targetTab.id },
@@ -280,7 +275,11 @@ async function initSchedule() {
         return;
       }
 
-      const { idCode, stdId, academicYear, semester } = parsed.user || {};
+      const userInfo = parsed.user || {};
+      const idCode = userInfo.idCode;
+      const stdId = userInfo.stdId;
+      const academicYear = userInfo.academicYear;
+      const semester = userInfo.semester;
       const accesstoken = storageData.accesstoken;
 
       if (!stdId) {
@@ -300,22 +299,18 @@ async function initSchedule() {
         cachedEnrolledYears = enrollYears;
         const curYear = yearSelect?.value || academicYear;
         initYearOptions(curYear, enrollYears);
-      } else if (!userHasSelectedTerm && !currentStudentInfo) {
-        if (academicYear) initYearOptions(academicYear);
+      } else if (!userHasSelectedTerm && !currentStudentInfo && academicYear) {
+        initYearOptions(academicYear);
       }
 
-      if (!userHasSelectedTerm && !currentStudentInfo) {
-        if (semester != null && semester !== "" && semesterSelect) {
-          semesterSelect.value = semester.toString();
-        }
+      if (!userHasSelectedTerm && !currentStudentInfo && semesterSelect) {
+        semesterSelect.value = semester;
       }
 
-      const targetYear = yearSelect?.value || academicYear;
-      const targetSemester = (semesterSelect?.value != null && semesterSelect.value !== "")
-        ? semesterSelect.value
-        : (semester != null ? semester.toString() : "");
+      const targetYear = (yearSelect && yearSelect.value) || academicYear;
+      const targetSemester = (semesterSelect && semesterSelect.value) || semester;
 
-      if (!targetYear || targetSemester === "") {
+      if (!targetYear || !targetSemester) {
         showAlertKey("LOGIN_REQUIRED");
         return;
       }
@@ -338,20 +333,20 @@ async function initSchedule() {
         return;
       }
 
-      const isDataNotFound = scheduleData?.message?.trim().toLowerCase().includes("not found");
-      if (isDataNotFound) {
+      const msg = scheduleData?.message?.toLowerCase() || "";
+      if (msg.includes("not found")) {
         currentCourses = [];
         renderScheduleGrid([], daysBody, currentLang);
         showAlertKey("NOT_FOUND");
         return;
       }
 
-      if (!scheduleData || !scheduleData.results || !scheduleData.results[0]?.course) {
+      const courses = scheduleData?.results?.[0]?.course;
+      if (!Array.isArray(courses)) {
         showAlertKey("FETCH_FAILED");
         return;
       }
 
-      const courses = scheduleData.results[0].course;
       currentCourses = courses;
       await saveCachedSchedule(studentData, courses, cachedEnrolledYears);
       renderScheduleGrid(courses, daysBody, currentLang);
@@ -368,8 +363,10 @@ async function initSchedule() {
   // UI Alerts & Loading State Helpers
   function showAlertKey(key) {
     currentAlertKey = key;
-    const msg = I18N[currentLang]?.alerts[key] || key;
+    const langDict = I18N[currentLang];
+    const msg = (langDict && langDict.alerts[key]) || key;
     const showLink = key === "LOGIN_REQUIRED" || key === "SESSION_EXPIRED";
+
     if (alertMessage) alertMessage.textContent = msg;
     if (alertLink) alertLink.classList.toggle("hidden", !showLink);
     if (alertBox) alertBox.classList.remove("hidden");
