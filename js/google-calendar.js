@@ -193,8 +193,6 @@ async function syncScheduleToGoogleCalendar({
     if (!timing) continue;
 
     const summary = formatCourseTitle(c, titleFormat, lang);
-    const rawRoom = getCourseRoom(c, lang);
-    const room = rawRoom && rawRoom.trim() !== "-" ? rawRoom.trim() : "";
 
     const progressMsg = lang === "en"
       ? `Adding (${i + 1}/${courses.length}): ${summary}...`
@@ -203,7 +201,6 @@ async function syncScheduleToGoogleCalendar({
 
     const eventPayload = {
       summary,
-      location: room || undefined,
       start: {
         dateTime: timing.startIso,
         timeZone: "Asia/Bangkok",

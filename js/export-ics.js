@@ -124,8 +124,6 @@ function generateICSContent(courses, lang, titleFormat = "name_room") {
 
     // จัดเตรียมข้อมูลวิชา
     const summary = formatCourseTitle(c, titleFormat, lang);
-    const rawRoom = getCourseRoom(c, lang);
-    const room = rawRoom && rawRoom.trim() !== "-" ? rawRoom.trim() : "";
 
     const escapeIcs = (str) =>
       String(str)
@@ -145,14 +143,7 @@ function generateICSContent(courses, lang, titleFormat = "name_room") {
       `DTSTART;TZID=Asia/Bangkok:${timing.dtStart}`,
       `DTEND;TZID=Asia/Bangkok:${timing.dtEnd}`,
       `RRULE:FREQ=WEEKLY;UNTIL=${timing.untilStr}`,
-      "STATUS:CONFIRMED"
-    );
-
-    if (room) {
-      icsLines.push(`LOCATION:${escapeIcs(room)}`);
-    }
-
-    icsLines.push(
+      "STATUS:CONFIRMED",
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
       `DESCRIPTION:${escapeIcs(reminderDesc)}`,
