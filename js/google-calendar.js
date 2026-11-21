@@ -102,7 +102,7 @@ async function insertCalendarEvent(token, calendarId, eventData) {
   return await res.json();
 }
 
-// สลับไปยังแท็บ Google Calendar หรือสร้างแท็บใหม่
+// สลับไปยังแท็บ Google Calendar หรือสร้างแท็บใหม่ (ไปยังหน้าปฏิทินหลักเสมอ)
 async function openGoogleCalendarView() {
   const defaultUrl = "https://calendar.google.com/calendar/r";
   try {
@@ -110,8 +110,27 @@ async function openGoogleCalendarView() {
       const gcalTabs = await chrome.tabs.query({ url: "https://calendar.google.com/*" });
       if (gcalTabs && gcalTabs.length > 0) {
         const targetTab = gcalTabs[0];
-        await chrome.tabs.update(targetTab.id, { active: true });
-        if (targetTab.windowId) {
+
+        // ตรวจสอบ account index (เช่น /u/0/, /u/1/) เพื่อคง Google account เดิม
+        const userMatch = targetTab.url ? targetTab.url.match(/\/calendar\/u\/(\d+)\//) : null;
+        const mainUrl = userMatch
+          ? `https://calendar.google.com/calendar/u/${userMatch[1]}/r`
+          : defaultUrl;
+
+        // บังคับเปลี่ยน URL ไปหน้าปฏิทินหลักเสมอ หากแท็บเดิมไม่ได้อยู่ที่หน้าหลัก (เช่น อยู่หน้า settings/export)
+        const isMainView = targetTab.url && (
+          targetTab.url.endsWith("/calendar/r") ||
+          targetTab.url.endsWith("/calendar/r/") ||
+          /\/calendar\/u\/\d+\/r\/?$/.test(targetTab.url)
+        );
+
+        const updateInfo = { active: true };
+        if (!isMainView) {
+          updateInfo.url = mainUrl;
+        }
+
+        await chrome.tabs.update(targetTab.id, updateInfo);
+        if (targetTab.windowId && chrome.windows?.update) {
           await chrome.windows.update(targetTab.windowId, { focused: true });
         }
         return;
