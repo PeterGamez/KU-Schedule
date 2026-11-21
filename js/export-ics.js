@@ -133,7 +133,6 @@ function generateICSContent(courses, lang, titleFormat = "name_room") {
         .replace(/\r?\n/g, "\\n");
 
     const uid = `ku-${c.section_id}-${timing.year}${timing.month}${timing.day}@kuschedule`;
-    const reminderDesc = lang === "en" ? "Class reminder: 30 minutes before" : "แจ้งเตือนก่อนเริ่มเรียน 30 นาที";
 
     icsLines.push(
       "BEGIN:VEVENT",
@@ -146,7 +145,6 @@ function generateICSContent(courses, lang, titleFormat = "name_room") {
       "STATUS:CONFIRMED",
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
-      `DESCRIPTION:${escapeIcs(reminderDesc)}`,
       "TRIGGER:-PT30M",
       "END:VALARM",
       "END:VEVENT"
