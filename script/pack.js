@@ -13,7 +13,7 @@ const ENTRIES_TO_PACK = [
   "background.js",
   "schedule.html",
   "schedule.js",
-  "styles.css",
+  "css",
   "i18n.js",
   "icons",
   "js",

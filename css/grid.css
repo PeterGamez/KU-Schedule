@@ -1,0 +1,231 @@
+.schedule-container {
+  padding: 18px 24px;
+}
+
+.schedule-capture-area {
+  width: 100%;
+}
+
+.schedule-table {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.time-header-row {
+  display: flex;
+  height: 44px;
+  background-color: #f1f5f9;
+  border-bottom: 2px solid var(--border-color);
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.day-corner {
+  width: 110px;
+  min-width: 110px;
+  max-width: 110px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--border-color);
+  background-color: #e2e8f0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hours-track {
+  flex: 1;
+  display: flex;
+}
+
+.hour-cell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+  border-right: 1px solid var(--border-color);
+  color: #0f172a;
+  text-align: center;
+  background-color: #f8fafc;
+  position: relative;
+  overflow: hidden;
+}
+
+.hour-cell:last-child {
+  border-right: none;
+}
+
+.period-range {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.days-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.day-row {
+  display: flex;
+  min-height: 96px;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+  background-color: #ffffff;
+}
+
+.day-row:last-child {
+  border-bottom: none;
+}
+
+.day-label {
+  width: 110px;
+  min-width: 110px;
+  max-width: 110px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--border-color);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.day-mon .day-label {
+  background-color: #FACC15;
+  color: #0f172a;
+}
+
+.day-tue .day-label {
+  background-color: #F472B6;
+  color: #0f172a;
+}
+
+.day-wed .day-label {
+  background-color: #4ADE80;
+  color: #0f172a;
+}
+
+.day-thu .day-label {
+  background-color: #FB923C;
+  color: #0f172a;
+}
+
+.day-fri .day-label {
+  background-color: #38BDF8;
+  color: #0f172a;
+}
+
+.day-sat .day-label {
+  background-color: #C084FC;
+  color: #0f172a;
+}
+
+.day-sun .day-label {
+  background-color: #F87171;
+  color: #0f172a;
+}
+
+.day-track {
+  flex: 1;
+  position: relative;
+  min-height: 96px;
+}
+
+.day-track-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  pointer-events: none;
+}
+
+.day-track-col {
+  flex: 1;
+  border-right: 1px solid #e2e8f0;
+  height: 100%;
+  position: relative;
+}
+
+.day-track-col::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  border-right: 1px dashed #f1f5f9;
+  pointer-events: none;
+}
+
+.day-track-col:last-child {
+  border-right: none;
+}
+
+.course-block {
+  position: absolute;
+  top: 5px;
+  height: calc(100% - 10px);
+  border-radius: 6px;
+  border-left: 5px solid;
+  padding: 4px 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  color: #0f172a;
+}
+
+.course-code {
+  font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+  text-align: center;
+  letter-spacing: 0.1px;
+  color: #0f172a;
+  padding: 0 2px;
+}
+
+.course-name {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+  text-align: center;
+  color: #0f172a;
+  padding: 1px 4px 3px 4px;
+}
+
+.course-meta {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+  text-align: center;
+  color: #0f172a;
+  padding: 0 2px;
+}

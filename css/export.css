@@ -1,0 +1,54 @@
+.export-header {
+  display: none;
+  background: var(--ku-green);
+  color: #ffffff;
+  padding: 16px 22px;
+  border-radius: 8px 8px 0 0;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.export-brand {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.export-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.export-badge {
+  background: rgba(255, 255, 255, 0.22);
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.export-footer {
+  display: none;
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-top: none;
+  padding: 10px 20px;
+  border-radius: 0 0 8px 8px;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.export-credit {
+  font-weight: 500;
+}
+
+.is-exporting .export-header {
+  display: flex !important;
+}
+
+.is-exporting .export-footer {
+  display: flex !important;
+}

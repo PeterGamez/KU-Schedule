@@ -1,0 +1,232 @@
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, var(--ku-green) 0%, var(--ku-green-dark) 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  flex: 1;
+}
+
+.brand-title {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.term-selectors {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(255, 255, 255, 0.12);
+  padding: 3px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.selector-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.selector-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f0fdf4;
+  white-space: nowrap;
+  display: inline-block;
+  text-align: center;
+}
+
+#yearLabel {
+  min-width: 28px;
+}
+
+#semesterLabel {
+  min-width: 34px;
+}
+
+.term-select {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+#yearSelect {
+  width: 74px;
+  min-width: 74px;
+}
+
+#semesterSelect {
+  width: 148px;
+  min-width: 148px;
+}
+
+.term-select:hover {
+  background-color: rgba(255, 255, 255, 0.28);
+}
+
+.term-select:focus {
+  border-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+.term-select option {
+  background-color: #ffffff;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.lang-switch {
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 0;
+  width: 32px;
+  min-width: 32px;
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lang-btn:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.lang-btn.active {
+  background-color: #ffffff;
+  color: var(--ku-green);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+/* Header Action Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+#fetchBtn {
+  width: 144px;
+  min-width: 144px;
+}
+
+#exportBtn {
+  width: 152px;
+  min-width: 152px;
+}
+
+#exportIcsBtn {
+  width: 135px;
+  min-width: 135px;
+}
+
+.btn .icon {
+  flex-shrink: 0;
+}
+
+.btn-primary {
+  background-color: #ffffff;
+  color: var(--ku-green);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+  background-color: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-icon.spinning,
+.spin-icon-export.spinning,
+.spin-icon-export-ics.spinning {
+  animation: spin 0.8s linear infinite;
+}

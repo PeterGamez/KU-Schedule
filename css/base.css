@@ -1,0 +1,76 @@
+:root {
+  --ku-green: #006633;
+  --ku-green-dark: #004d26;
+  --bg-main: #f8fafc;
+  --border-color: #cbd5e1;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --font-sans: "Sarabun", "Leelawadee UI", "Thonburi", -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 100%;
+  min-width: 900px;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  line-height: 1.4;
+  overflow-x: auto;
+  overflow-y: auto;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.hidden-on-screen {
+  display: none !important;
+}
+
+.app-container {
+  width: 100%;
+  margin: 0 auto;
+  padding-bottom: 30px;
+}
+
+/* Alert Box */
+.alert-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fef2f2;
+  border-bottom: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 10px 24px;
+  font-size: 13px;
+}
+
+.alert-content {
+  font-weight: 600;
+}
+
+.alert-btn {
+  background-color: #dc2626;
+  color: #ffffff;
+  padding: 5px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.alert-btn:hover {
+  background-color: #b91c1c;
+}
