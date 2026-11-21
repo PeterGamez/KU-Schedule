@@ -10,11 +10,9 @@ const ROOT_DIR = path.resolve(import.meta.dir, "..");
 // ==========================================
 const ENTRIES_TO_PACK = [
   "manifest.json",
-  "background.js",
-  "schedule.html",
-  "schedule.js",
+  "service-worker.js",
+  "index.html",
   "css",
-  "i18n.js",
   "icons",
   "js",
   "lib",
