@@ -177,16 +177,6 @@ async function syncScheduleToGoogleCalendar({
     const rawRoom = getCourseRoom(c, lang);
     const room = rawRoom && rawRoom.trim() !== "-" ? rawRoom.trim() : "";
 
-    // รายละเอียดใน Description
-    const descParts = [];
-    if (c.subject_code) descParts.push(`${lang === "en" ? "Course Code" : "รหัสวิชา"}: ${c.subject_code}`);
-    if (c.section_code) descParts.push(`${lang === "en" ? "Section" : "หมู่เรียน"}: ${c.section_code}`);
-    const typeLabel = getCourseType(c, lang);
-    if (typeLabel) descParts.push(`${lang === "en" ? "Type" : "ประเภท"}: ${typeLabel}`);
-    if (room) descParts.push(`${lang === "en" ? "Room" : "ห้องเรียน"}: ${room}`);
-    const teacher = lang === "en" ? (c.teacher_name_en || c.teacher_name) : (c.teacher_name || c.teacher_name_en);
-    if (teacher) descParts.push(`${lang === "en" ? "Instructor" : "อาจารย์ผู้สอน"}: ${teacher}`);
-
     const progressMsg = lang === "en"
       ? `Adding (${i + 1}/${courses.length}): ${summary}...`
       : `กำลังเพิ่ม (${i + 1}/${courses.length}): ${summary}...`;
@@ -195,7 +185,6 @@ async function syncScheduleToGoogleCalendar({
     const eventPayload = {
       summary,
       location: room || undefined,
-      description: descParts.join("\n"),
       start: {
         dateTime: timing.startIso,
         timeZone: "Asia/Bangkok",

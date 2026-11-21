@@ -152,19 +152,7 @@ function generateICSContent(courses, lang, titleFormat = "name_room") {
       icsLines.push(`LOCATION:${escapeIcs(room)}`);
     }
 
-    // รายละเอียดเพิ่มเติมในช่อง Description
-    const descParts = [];
-    if (c.subject_code) descParts.push(`${lang === "en" ? "Course Code" : "รหัสวิชา"}: ${c.subject_code}`);
-    if (c.section_code) descParts.push(`${lang === "en" ? "Section" : "หมู่เรียน"}: ${c.section_code}`);
-    const typeLabel = getCourseType(c, lang);
-    if (typeLabel) descParts.push(`${lang === "en" ? "Type" : "ประเภท"}: ${typeLabel}`);
-    if (room) descParts.push(`${lang === "en" ? "Room" : "ห้องเรียน"}: ${room}`);
-    const teacher = lang === "en" ? (c.teacher_name_en || c.teacher_name) : (c.teacher_name || c.teacher_name_en);
-    if (teacher) descParts.push(`${lang === "en" ? "Instructor" : "อาจารย์ผู้สอน"}: ${teacher}`);
-    descParts.push(reminderDesc);
-
     icsLines.push(
-      `DESCRIPTION:${escapeIcs(descParts.join("\n"))}`,
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
       `DESCRIPTION:${escapeIcs(reminderDesc)}`,
