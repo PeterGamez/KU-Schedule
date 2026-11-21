@@ -38,13 +38,21 @@ async function getOrCreateSecondaryCalendar(token, title, lang = "th") {
   };
 
   // 1. ค้นหาใน Calendar List ของผู้ใช้ว่ามีปฏิทินชื่อนี้อยู่แล้วหรือไม่
+  // หากมีอยู่แล้ว ให้ลบปฏิทินเดิมออกก่อนเพื่อป้องกันปัญหากิจกรรมซ้ำซ้อน (Duplicate Events)
   try {
     const listRes = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", { headers });
     if (listRes.ok) {
       const data = await listRes.json();
       const existing = (data.items || []).find((cal) => cal.summary === title);
       if (existing) {
-        return existing.id;
+        try {
+          await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(existing.id)}`, {
+            method: "DELETE",
+            headers,
+          });
+        } catch (delErr) {
+          console.warn("Could not delete existing calendar before recreate:", delErr);
+        }
       }
     }
   } catch (e) {
@@ -159,45 +167,11 @@ async function syncScheduleToGoogleCalendar({
   }
 
   // 3. วนลูปสร้างกิจกรรมสำหรับแต่ละวิชา
-  const dayMap = { MON: 0, TUE: 1, WED: 2, THU: 3, FRI: 4, SAT: 5, SUN: 6 };
-  const pad = (n) => String(n).padStart(2, "0");
-
   let insertedCount = 0;
   for (let i = 0; i < courses.length; i++) {
     const c = courses[i];
-    const targetWeekday = dayMap[normalizeDay(c.day_w)];
-    if (targetWeekday === undefined) continue;
-
-    const wsMs = new Date(c.weekstartday).getTime();
-    const weMs = new Date(c.weekendday).getTime();
-    if (isNaN(wsMs) || isNaN(weMs)) continue;
-
-    const wsDate = new Date(wsMs + 7 * 3600 * 1000);
-    const weDate = new Date(weMs + 7 * 3600 * 1000);
-
-    const wsWeekday = (wsDate.getUTCDay() + 6) % 7;
-    const daysAhead = (targetWeekday - wsWeekday + 7) % 7;
-    const firstClassDate = new Date(wsDate.getTime() + daysAhead * 86400000);
-
-    const { startMin, endMin } = getCourseMinutes(c);
-    if (startMin === null || endMin === null) continue;
-
-    const startHour = Math.floor(startMin / 60);
-    const startMinute = startMin % 60;
-    const endHour = Math.floor(endMin / 60);
-    const endMinute = endMin % 60;
-
-    const y = firstClassDate.getUTCFullYear();
-    const m = pad(firstClassDate.getUTCMonth() + 1);
-    const d = pad(firstClassDate.getUTCDate());
-
-    const startDateTime = `${y}-${m}-${d}T${pad(startHour)}:${pad(startMinute)}:00+07:00`;
-    const endDateTime = `${y}-${m}-${d}T${pad(endHour)}:${pad(endMinute)}:00+07:00`;
-
-    const weY = weDate.getUTCFullYear();
-    const weM = pad(weDate.getUTCMonth() + 1);
-    const weD = pad(weDate.getUTCDate());
-    const untilStr = `${weY}${weM}${weD}T165959Z`;
+    const timing = getCourseEventTiming(c);
+    if (!timing) continue;
 
     const summary = formatCourseTitle(c, titleFormat, lang);
     const rawRoom = getCourseRoom(c, lang);
@@ -223,14 +197,14 @@ async function syncScheduleToGoogleCalendar({
       location: room || undefined,
       description: descParts.join("\n"),
       start: {
-        dateTime: startDateTime,
+        dateTime: timing.startIso,
         timeZone: "Asia/Bangkok",
       },
       end: {
-        dateTime: endDateTime,
+        dateTime: timing.endIso,
         timeZone: "Asia/Bangkok",
       },
-      recurrence: [`RRULE:FREQ=WEEKLY;UNTIL=${untilStr}`],
+      recurrence: [`RRULE:FREQ=WEEKLY;UNTIL=${timing.untilStr}`],
       reminders: {
         useDefault: false,
         overrides: [{ method: "popup", minutes: 30 }],

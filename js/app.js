@@ -258,7 +258,12 @@ async function initSchedule() {
       } catch (err) {
         console.error("Google Calendar Sync Error:", err);
         const errMsg = String(err?.message || err).toLowerCase();
-        if (errMsg.includes("cancel") || errMsg.includes("turned down")) {
+        if (
+          errMsg.includes("cancel") ||
+          errMsg.includes("turned down") ||
+          errMsg.includes("not approve") ||
+          errMsg.includes("denied")
+        ) {
           showAlertKey("SYNC_GCAL_CANCELLED");
         } else {
           showAlertKey("SYNC_GCAL_ERROR");

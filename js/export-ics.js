@@ -119,43 +119,8 @@ function generateICSContent(courses, lang, titleFormat = "name_room") {
   ];
 
   courses.forEach((c) => {
-    const targetWeekday = dayMap[normalizeDay(c.day_w)];
-    if (targetWeekday === undefined) return;
-
-    // วันเริ่มต้นและสิ้นสุดภาคเรียน (คำนวณตามเวลาท้องถิ่นประเทศไทย UTC+7)
-    const wsMs = new Date(c.weekstartday).getTime();
-    const weMs = new Date(c.weekendday).getTime();
-    if (isNaN(wsMs) || isNaN(weMs)) return;
-
-    const wsDate = new Date(wsMs + 7 * 3600 * 1000);
-    const weDate = new Date(weMs + 7 * 3600 * 1000);
-
-    // คำนวณวันแรกที่วิชานี้เริ่มเรียน (นับจากวันเริ่มภาคเรียน)
-    const wsWeekday = (wsDate.getUTCDay() + 6) % 7;
-    const daysAhead = (targetWeekday - wsWeekday + 7) % 7;
-    const firstClassDate = new Date(wsDate.getTime() + daysAhead * 86400000);
-
-    // คำนวณเวลาเริ่มและสิ้นสุดของวิชาเรียน
-    const { startMin, endMin } = getCourseMinutes(c);
-    if (startMin === null || endMin === null) return;
-
-    const startHour = Math.floor(startMin / 60);
-    const startMinute = startMin % 60;
-    const endHour = Math.floor(endMin / 60);
-    const endMinute = endMin % 60;
-
-    const y = firstClassDate.getUTCFullYear();
-    const m = pad(firstClassDate.getUTCMonth() + 1);
-    const d = pad(firstClassDate.getUTCDate());
-
-    const dtStart = `${y}${m}${d}T${pad(startHour)}${pad(startMinute)}00`;
-    const dtEnd = `${y}${m}${d}T${pad(endHour)}${pad(endMinute)}00`;
-
-    // วันสิ้นสุดการทำซ้ำ (UNTIL): สิ้นสุดเวลา 23:59:59 น. เวลาไทย (UTC+7) -> แปลงเป็น UTC = 16:59:59Z
-    const weY = weDate.getUTCFullYear();
-    const weM = pad(weDate.getUTCMonth() + 1);
-    const weD = pad(weDate.getUTCDate());
-    const untilStr = `${weY}${weM}${weD}T165959Z`;
+    const timing = getCourseEventTiming(c);
+    if (!timing) return;
 
     // จัดเตรียมข้อมูลวิชา
     const summary = formatCourseTitle(c, titleFormat, lang);
@@ -169,7 +134,7 @@ function generateICSContent(courses, lang, titleFormat = "name_room") {
         .replace(/,/g, "\\,")
         .replace(/\r?\n/g, "\\n");
 
-    const uid = `ku-${c.section_id}-${y}${m}${d}@kuschedule`;
+    const uid = `ku-${c.section_id}-${timing.year}${timing.month}${timing.day}@kuschedule`;
     const reminderDesc = lang === "en" ? "Class reminder: 30 minutes before" : "แจ้งเตือนก่อนเริ่มเรียน 30 นาที";
 
     icsLines.push(
@@ -177,9 +142,9 @@ function generateICSContent(courses, lang, titleFormat = "name_room") {
       `UID:${uid}`,
       `DTSTAMP:${nowUtc}`,
       `SUMMARY:${escapeIcs(summary)}`,
-      `DTSTART;TZID=Asia/Bangkok:${dtStart}`,
-      `DTEND;TZID=Asia/Bangkok:${dtEnd}`,
-      `RRULE:FREQ=WEEKLY;UNTIL=${untilStr}`,
+      `DTSTART;TZID=Asia/Bangkok:${timing.dtStart}`,
+      `DTEND;TZID=Asia/Bangkok:${timing.dtEnd}`,
+      `RRULE:FREQ=WEEKLY;UNTIL=${timing.untilStr}`,
       "STATUS:CONFIRMED"
     );
 
