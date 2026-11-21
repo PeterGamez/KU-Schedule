@@ -115,7 +115,7 @@ const I18N = {
       "2": "Second Semester",
       "0": "Summer Semester",
     },
-    exportTerm: (year, semester) => `Academic Year ${year} • ${semester}`,
+    exportTerm: (year, semester) => `Academic Year ${year} ${semester}`,
     exportTimestamp: (date, time) => `Data from my.ku.th • Exported on ${date} at ${time}`,
     days: {
       MON: "Monday",
