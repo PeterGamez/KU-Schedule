@@ -1,7 +1,96 @@
 // ส่งออกตารางเรียนเป็นไฟล์ iCalendar (.ics) สำหรับ Google Calendar / Apple Calendar
 
+// ดึงประเภทคาบเรียน (Lec / Lab หรือ บรรยาย / ปฏิบัติ) จาก JSON ของ My KU
+// หมายเหตุ: ใน JSON ของ My KU:
+// - 'section_type_th' คือ "บรรยาย" หรือ "ปฏิบัติ"
+// - 'section_type_en' คือ "Lecture" หรือ "Laboratory"
+function getCourseType(course, lang = "th") {
+  if (!course) return "";
+  const typeTh = String(course.section_type_th || "").trim();
+  const typeEn = String(course.section_type_en || "").trim();
+
+  if (lang === "en") {
+    const lower = typeEn.toLowerCase();
+    if (lower.includes("lecture") || typeTh.includes("บรรยาย")) return "Lec";
+    if (lower.includes("lab") || typeTh.includes("ปฏิบัติ")) return "Lab";
+    return typeEn || typeTh;
+  } else {
+    if (typeTh.includes("บรรยาย") || typeEn.toLowerCase().includes("lecture")) return "บรรยาย";
+    if (typeTh.includes("ปฏิบัติ") || typeEn.toLowerCase().includes("lab")) return "ปฏิบัติ";
+    return typeTh || typeEn;
+  }
+}
+
+// จัดรูปแบบชื่อวิชาสำหรับแสดงในปฏิทินตามรูปแบบที่เลือก
+function formatCourseTitle(course, formatKey = "name_room", lang = "th") {
+  const code = course?.subject_code ? String(course.subject_code).trim() : "";
+  const name = getCourseName(course, lang) || "";
+  const rawRoom = getCourseRoom(course, lang);
+  const room = rawRoom && rawRoom.trim() !== "-" ? rawRoom.trim() : "";
+  const type = getCourseType(course, lang);
+  const sec = course?.section_code
+    ? (lang === "en" ? `Sec ${course.section_code}` : `หมู่ ${course.section_code}`)
+    : "";
+
+  switch (formatKey) {
+    // กลุ่มมาตรฐาน (เน้นอ่านง่าย กระชับ)
+    case "name_room": {
+      return room ? `${name} - ${room}` : name;
+    }
+    case "name_room_brackets": {
+      return room ? `${name} (${room})` : name;
+    }
+    case "name_only": {
+      return name;
+    }
+
+    // กลุ่มระบุหมู่เรียน (Section)
+    case "name_sec_room": {
+      const mid = sec ? ` (${sec})` : "";
+      return room ? `${name}${mid} - ${room}` : `${name}${mid}`;
+    }
+    case "name_room_sec": {
+      if (room && sec) return `${name} - ${room} (${sec})`;
+      if (room) return `${name} - ${room}`;
+      if (sec) return `${name} (${sec})`;
+      return name;
+    }
+
+    // กลุ่มระบุประเภทคาบ (Type: Lec / Lab)
+    case "name_type_room": {
+      const typePart = type ? ` (${type})` : "";
+      return room ? `${name}${typePart} - ${room}` : `${name}${typePart}`;
+    }
+    case "name_type_sec_room": {
+      const typeSec = [type, sec].filter(Boolean).join(", ");
+      const paren = typeSec ? ` (${typeSec})` : "";
+      return room ? `${name}${paren} - ${room}` : `${name}${paren}`;
+    }
+
+    // กลุ่มแสดงรหัสวิชา (Code)
+    case "code_name_room": {
+      const prefix = code ? `[${code}] ` : "";
+      return room ? `${prefix}${name} - ${room}` : `${prefix}${name}`;
+    }
+    case "code_name_type_room": {
+      const prefix = code ? `[${code}] ` : "";
+      const typePart = type ? ` (${type})` : "";
+      return room ? `${prefix}${name}${typePart} - ${room}` : `${prefix}${name}${typePart}`;
+    }
+    case "code_name_sec_room": {
+      const prefix = code ? `[${code}] ` : "";
+      const secPart = sec ? ` (${sec})` : "";
+      return room ? `${prefix}${name}${secPart} - ${room}` : `${prefix}${name}${secPart}`;
+    }
+
+    default: {
+      return room ? `${name} - ${room}` : name;
+    }
+  }
+}
+
 // สร้างเนื้อหาไฟล์ iCalendar (RFC 5545) จากรายการวิชาเรียน
-function generateICSContent(courses, lang) {
+function generateICSContent(courses, lang, titleFormat = "name_room") {
   const dayMap = { MON: 0, TUE: 1, WED: 2, THU: 3, FRI: 4, SAT: 5, SUN: 6 };
   const pad = (n) => String(n).padStart(2, "0");
 
@@ -69,9 +158,9 @@ function generateICSContent(courses, lang) {
     const untilStr = `${weY}${weM}${weD}T165959Z`;
 
     // จัดเตรียมข้อมูลวิชา
-    const subjName = getCourseName(c, lang);
-    const room = getCourseRoom(c, lang);
-    const summary = room ? `${subjName} - ${room}` : subjName;
+    const summary = formatCourseTitle(c, titleFormat, lang);
+    const rawRoom = getCourseRoom(c, lang);
+    const room = rawRoom && rawRoom.trim() !== "-" ? rawRoom.trim() : "";
 
     const escapeIcs = (str) =>
       String(str)
@@ -91,7 +180,26 @@ function generateICSContent(courses, lang) {
       `DTSTART;TZID=Asia/Bangkok:${dtStart}`,
       `DTEND;TZID=Asia/Bangkok:${dtEnd}`,
       `RRULE:FREQ=WEEKLY;UNTIL=${untilStr}`,
-      "STATUS:CONFIRMED",
+      "STATUS:CONFIRMED"
+    );
+
+    if (room) {
+      icsLines.push(`LOCATION:${escapeIcs(room)}`);
+    }
+
+    // รายละเอียดเพิ่มเติมในช่อง Description
+    const descParts = [];
+    if (c.subject_code) descParts.push(`${lang === "en" ? "Course Code" : "รหัสวิชา"}: ${c.subject_code}`);
+    if (c.section_code) descParts.push(`${lang === "en" ? "Section" : "หมู่เรียน"}: ${c.section_code}`);
+    const typeLabel = getCourseType(c, lang);
+    if (typeLabel) descParts.push(`${lang === "en" ? "Type" : "ประเภท"}: ${typeLabel}`);
+    if (room) descParts.push(`${lang === "en" ? "Room" : "ห้องเรียน"}: ${room}`);
+    const teacher = lang === "en" ? (c.teacher_name_en || c.teacher_name) : (c.teacher_name || c.teacher_name_en);
+    if (teacher) descParts.push(`${lang === "en" ? "Instructor" : "อาจารย์ผู้สอน"}: ${teacher}`);
+    descParts.push(reminderDesc);
+
+    icsLines.push(
+      `DESCRIPTION:${escapeIcs(descParts.join("\n"))}`,
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
       `DESCRIPTION:${escapeIcs(reminderDesc)}`,
@@ -148,6 +256,7 @@ async function handleExportICS({
   currentCourses,
   currentStudentInfo,
   currentLang,
+  titleFormat = "name_room",
   showAlertKey,
   hideAlert,
   setExportIcsLoading,
@@ -162,7 +271,7 @@ async function handleExportICS({
   setExportIcsLoading(true);
 
   try {
-    const icsString = generateICSContent(currentCourses, currentLang);
+    const icsString = generateICSContent(currentCourses, currentLang, titleFormat);
     const blob = new Blob([icsString], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

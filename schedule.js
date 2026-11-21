@@ -1,4 +1,17 @@
 // KU Schedule - Main Controller
+const ICS_FORMAT_KEYS = [
+  "name_room",
+  "name_room_brackets",
+  "name_only",
+  "name_sec_room",
+  "name_room_sec",
+  "name_type_room",
+  "name_type_sec_room",
+  "code_name_room",
+  "code_name_type_room",
+  "code_name_sec_room",
+];
+
 initSchedule();
 
 async function initSchedule() {
@@ -16,6 +29,18 @@ async function initSchedule() {
   const exportIcsBtnText = document.getElementById("exportIcsBtnText");
   const spinIconExportIcs = document.querySelector(".spin-icon-export-ics");
   const exportIcsDefaultIcon = document.querySelector(".export-ics-default-icon");
+
+  const icsModal = document.getElementById("icsModal");
+  const icsModalTitle = document.getElementById("icsModalTitle");
+  const icsModalSubtitle = document.getElementById("icsModalSubtitle");
+  const icsFormatLabel = document.getElementById("icsFormatLabel");
+  const icsFormatSelect = document.getElementById("icsFormatSelect");
+  const icsPreviewLabel = document.getElementById("icsPreviewLabel");
+  const icsPreviewText = document.getElementById("icsPreviewText");
+  const icsModalCloseBtn = document.getElementById("icsModalCloseBtn");
+  const icsModalCancelBtn = document.getElementById("icsModalCancelBtn");
+  const icsModalConfirmBtn = document.getElementById("icsModalConfirmBtn");
+  const icsModalConfirmBtnText = document.getElementById("icsModalConfirmBtnText");
 
   const yearSelect = document.getElementById("yearSelect");
   const semesterSelect = document.getElementById("semesterSelect");
@@ -44,14 +69,19 @@ async function initSchedule() {
   let isExportingIcs = false;
   let currentAlertKey = null;
   let currentLang = "th";
+  let currentIcsFormat = "name_room";
 
   // เริ่มต้นสร้างหัวตาราง โหลดปีการศึกษา และภาษา
   initGridHeader(hoursTrack);
+  updateExportButtonsState();
 
   try {
-    const stored = await chrome.storage.local.get(["ku_schedule_lang"]);
+    const stored = await chrome.storage.local.get(["ku_schedule_lang", "ku_schedule_ics_format"]);
     if (stored?.ku_schedule_lang) {
       currentLang = stored.ku_schedule_lang;
+    }
+    if (stored?.ku_schedule_ics_format) {
+      currentIcsFormat = stored.ku_schedule_ics_format;
     }
   } catch (e) { }
   setLanguage(currentLang);
@@ -67,6 +97,7 @@ async function initSchedule() {
       semesterSelect.value = cached.studentInfo.semester;
     }
     renderScheduleGrid(cached.courses, daysBody, currentLang);
+    updateExportButtonsState();
   } else {
     initYearOptions();
     handleFetch();
@@ -86,6 +117,7 @@ async function initSchedule() {
 
   if (exportBtn) {
     exportBtn.addEventListener("click", () => {
+      if (!currentCourses || currentCourses.length === 0) return;
       handleExportPNG({
         currentCourses,
         currentStudentInfo,
@@ -98,12 +130,85 @@ async function initSchedule() {
     });
   }
 
+  function initIcsFormatOptions(lang) {
+    if (!icsFormatSelect) return;
+    const curVal = icsFormatSelect.value || currentIcsFormat || "name_room";
+    icsFormatSelect.innerHTML = "";
+    const t = I18N[lang];
+
+    ICS_FORMAT_KEYS.forEach((key) => {
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = (t.icsFormats && t.icsFormats[key]) || key;
+      icsFormatSelect.appendChild(opt);
+    });
+
+    icsFormatSelect.value = ICS_FORMAT_KEYS.includes(curVal) ? curVal : "name_room";
+    currentIcsFormat = icsFormatSelect.value;
+    updateIcsPreview();
+  }
+
+  function updateIcsPreview() {
+    if (!icsPreviewText || !currentCourses || currentCourses.length === 0) return;
+    icsPreviewText.textContent = formatCourseTitle(currentCourses[0], currentIcsFormat, currentLang);
+  }
+
+  function openIcsModal() {
+    if (!icsModal) return;
+    initIcsFormatOptions(currentLang);
+    icsModal.classList.remove("hidden");
+  }
+
+  function closeIcsModal() {
+    if (!icsModal) return;
+    icsModal.classList.add("hidden");
+  }
+
   if (exportIcsBtn) {
     exportIcsBtn.addEventListener("click", () => {
+      if (!currentCourses || currentCourses.length === 0) return;
+      openIcsModal();
+    });
+  }
+
+  if (icsModalCloseBtn) {
+    icsModalCloseBtn.addEventListener("click", closeIcsModal);
+  }
+
+  if (icsModalCancelBtn) {
+    icsModalCancelBtn.addEventListener("click", closeIcsModal);
+  }
+
+  if (icsModal) {
+    icsModal.addEventListener("click", (e) => {
+      if (e.target === icsModal) closeIcsModal();
+    });
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && icsModal && !icsModal.classList.contains("hidden")) {
+      closeIcsModal();
+    }
+  });
+
+  if (icsFormatSelect) {
+    icsFormatSelect.addEventListener("change", () => {
+      currentIcsFormat = icsFormatSelect.value;
+      updateIcsPreview();
+      try {
+        chrome.storage.local.set({ ku_schedule_ics_format: currentIcsFormat });
+      } catch (e) { }
+    });
+  }
+
+  if (icsModalConfirmBtn) {
+    icsModalConfirmBtn.addEventListener("click", () => {
+      closeIcsModal();
       handleExportICS({
         currentCourses,
         currentStudentInfo,
         currentLang,
+        titleFormat: currentIcsFormat,
         showAlertKey,
         hideAlert,
         setExportIcsLoading,
@@ -158,6 +263,14 @@ async function initSchedule() {
     if (fetchBtn) fetchBtn.title = t.fetchTitle;
     if (exportBtn) exportBtn.title = t.exportTitle;
     if (exportIcsBtn) exportIcsBtn.title = t.exportIcsTitle;
+
+    if (icsModalTitle) icsModalTitle.textContent = t.icsModalTitle;
+    if (icsModalSubtitle) icsModalSubtitle.textContent = t.icsModalSubtitle;
+    if (icsFormatLabel) icsFormatLabel.textContent = t.icsFormatLabel;
+    if (icsPreviewLabel) icsPreviewLabel.textContent = t.icsPreviewLabel;
+    if (icsModalCancelBtn) icsModalCancelBtn.textContent = t.icsCancelBtn;
+    if (icsModalConfirmBtnText) icsModalConfirmBtnText.textContent = t.icsConfirmBtn;
+    initIcsFormatOptions(currentLang);
 
     if (fetchBtnText) {
       fetchBtnText.textContent = isFetching ? t.fetchBtnLoading : t.fetchBtn;
@@ -357,6 +470,7 @@ async function initSchedule() {
     } finally {
       isFetching = false;
       setLoading(false);
+      updateExportButtonsState();
     }
   }
 
@@ -390,9 +504,19 @@ async function initSchedule() {
     }
   }
 
+  function updateExportButtonsState() {
+    const hasCourses = Boolean(currentCourses && currentCourses.length > 0);
+    if (exportBtn) {
+      exportBtn.disabled = !hasCourses || isExporting;
+    }
+    if (exportIcsBtn) {
+      exportIcsBtn.disabled = !hasCourses || isExportingIcs;
+    }
+  }
+
   function setExportLoading(loading) {
     isExporting = loading;
-    if (exportBtn) exportBtn.disabled = loading;
+    updateExportButtonsState();
     const t = I18N[currentLang];
     if (loading) {
       if (exportBtnText) exportBtnText.textContent = t.exportBtnLoading;
@@ -413,7 +537,7 @@ async function initSchedule() {
 
   function setExportIcsLoading(loading) {
     isExportingIcs = loading;
-    if (exportIcsBtn) exportIcsBtn.disabled = loading;
+    updateExportButtonsState();
     const t = I18N[currentLang];
     if (loading) {
       if (exportIcsBtnText) exportIcsBtnText.textContent = t.exportIcsBtnLoading;
