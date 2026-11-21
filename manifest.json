@@ -5,12 +5,21 @@
   "description": "ดึงและแสดงผลตารางเรียนของนิสิตผ่านระบบ My KU แบบ Client-Side 100% (Unofficial)",
   "permissions": [
     "scripting",
-    "storage"
+    "storage",
+    "identity"
   ],
   "host_permissions": [
     "https://my.ku.th/*",
-    "https://calendar.google.com/*"
+    "https://calendar.google.com/*",
+    "https://www.googleapis.com/*"
   ],
+  "oauth2": {
+    "client_id": "204873181745-iosj9ue4ackiau2sraf45dub5uaafv6o.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/calendar.events"
+    ]
+  },
   "background": {
     "service_worker": "service-worker.js"
   },

@@ -39,8 +39,14 @@ async function initSchedule() {
   const icsPreviewText = document.getElementById("icsPreviewText");
   const icsModalCloseBtn = document.getElementById("icsModalCloseBtn");
   const icsModalCancelBtn = document.getElementById("icsModalCancelBtn");
-  const icsModalConfirmBtn = document.getElementById("icsModalConfirmBtn");
-  const icsModalConfirmBtnText = document.getElementById("icsModalConfirmBtnText");
+  const icsModalDownloadBtn = document.getElementById("icsModalDownloadBtn");
+  const icsModalDownloadBtnText = document.getElementById("icsModalDownloadBtnText");
+  const icsModalSyncBtn = document.getElementById("icsModalSyncBtn");
+  const icsModalSyncBtnText = document.getElementById("icsModalSyncBtnText");
+  const modalSyncProgress = document.getElementById("modalSyncProgress");
+  const modalSyncProgressText = document.getElementById("modalSyncProgressText");
+  const syncSpinIcon = icsModalSyncBtn?.querySelector(".sync-spin-icon");
+  const gcalIcon = icsModalSyncBtn?.querySelector(".gcal-icon");
 
   const yearSelect = document.getElementById("yearSelect");
   const semesterSelect = document.getElementById("semesterSelect");
@@ -67,6 +73,7 @@ async function initSchedule() {
   let isFetching = false;
   let isExporting = false;
   let isExportingIcs = false;
+  let isSyncingGoogleCalendar = false;
   let currentAlertKey = null;
   let currentLang = "th";
   let currentIcsFormat = "name_room";
@@ -201,8 +208,9 @@ async function initSchedule() {
     });
   }
 
-  if (icsModalConfirmBtn) {
-    icsModalConfirmBtn.addEventListener("click", () => {
+  // ดาวน์โหลดเป็นไฟล์ .ics
+  if (icsModalDownloadBtn) {
+    icsModalDownloadBtn.addEventListener("click", () => {
       closeIcsModal();
       handleExportICS({
         currentCourses,
@@ -214,6 +222,57 @@ async function initSchedule() {
         setExportIcsLoading,
         exportIcsBtnText,
       });
+    });
+  }
+
+  // ซิงค์เข้า Google Calendar โดยตรงผ่าน API
+  if (icsModalSyncBtn) {
+    icsModalSyncBtn.addEventListener("click", async () => {
+      if (isSyncingGoogleCalendar) return;
+      if (!currentCourses || currentCourses.length === 0) return;
+
+      isSyncingGoogleCalendar = true;
+      if (modalSyncProgress) modalSyncProgress.classList.remove("hidden");
+      if (syncSpinIcon) syncSpinIcon.classList.remove("hidden");
+      if (gcalIcon) gcalIcon.classList.add("hidden");
+      if (icsModalSyncBtn) icsModalSyncBtn.disabled = true;
+      if (icsModalDownloadBtn) icsModalDownloadBtn.disabled = true;
+      if (icsModalCancelBtn) icsModalCancelBtn.disabled = true;
+
+      const t = I18N[currentLang];
+      if (icsModalSyncBtnText) icsModalSyncBtnText.textContent = t.icsModalSyncing;
+
+      try {
+        await syncScheduleToGoogleCalendar({
+          courses: currentCourses,
+          studentInfo: currentStudentInfo,
+          lang: currentLang,
+          titleFormat: currentIcsFormat,
+          onProgress: (msg) => {
+            if (modalSyncProgressText) modalSyncProgressText.textContent = msg;
+          },
+        });
+
+        closeIcsModal();
+        showAlertKey("SYNC_GCAL_SUCCESS", true);
+      } catch (err) {
+        console.error("Google Calendar Sync Error:", err);
+        const errMsg = String(err?.message || err).toLowerCase();
+        if (errMsg.includes("cancel") || errMsg.includes("turned down")) {
+          showAlertKey("SYNC_GCAL_CANCELLED");
+        } else {
+          showAlertKey("SYNC_GCAL_ERROR");
+        }
+      } finally {
+        isSyncingGoogleCalendar = false;
+        if (modalSyncProgress) modalSyncProgress.classList.add("hidden");
+        if (syncSpinIcon) syncSpinIcon.classList.add("hidden");
+        if (gcalIcon) gcalIcon.classList.remove("hidden");
+        if (icsModalSyncBtn) icsModalSyncBtn.disabled = false;
+        if (icsModalDownloadBtn) icsModalDownloadBtn.disabled = false;
+        if (icsModalCancelBtn) icsModalCancelBtn.disabled = false;
+        if (icsModalSyncBtnText) icsModalSyncBtnText.textContent = t.icsModalSyncBtn;
+      }
     });
   }
 
@@ -269,7 +328,10 @@ async function initSchedule() {
     if (icsFormatLabel) icsFormatLabel.textContent = t.icsFormatLabel;
     if (icsPreviewLabel) icsPreviewLabel.textContent = t.icsPreviewLabel;
     if (icsModalCancelBtn) icsModalCancelBtn.textContent = t.icsCancelBtn;
-    if (icsModalConfirmBtnText) icsModalConfirmBtnText.textContent = t.icsConfirmBtn;
+    if (icsModalDownloadBtnText) icsModalDownloadBtnText.textContent = t.icsModalDownloadBtn;
+    if (icsModalSyncBtnText) {
+      icsModalSyncBtnText.textContent = isSyncingGoogleCalendar ? t.icsModalSyncing : t.icsModalSyncBtn;
+    }
     initIcsFormatOptions(currentLang);
 
     if (fetchBtnText) {
@@ -475,7 +537,7 @@ async function initSchedule() {
   }
 
   // UI Alerts & Loading State Helpers
-  function showAlertKey(key) {
+  function showAlertKey(key, isSuccess = false) {
     currentAlertKey = key;
     const langDict = I18N[currentLang];
     const msg = (langDict && langDict.alerts[key]) || key;
@@ -483,12 +545,18 @@ async function initSchedule() {
 
     if (alertMessage) alertMessage.textContent = msg;
     if (alertLink) alertLink.classList.toggle("hidden", !showLink);
-    if (alertBox) alertBox.classList.remove("hidden");
+    if (alertBox) {
+      alertBox.classList.remove("hidden");
+      alertBox.classList.toggle("alert-success", isSuccess || key === "SYNC_GCAL_SUCCESS");
+    }
   }
 
   function hideAlert() {
     currentAlertKey = null;
-    if (alertBox) alertBox.classList.add("hidden");
+    if (alertBox) {
+      alertBox.classList.add("hidden");
+      alertBox.classList.remove("alert-success");
+    }
   }
 
   function setLoading(loading) {

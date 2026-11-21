@@ -57,6 +57,12 @@ body {
   font-size: 13px;
 }
 
+.alert-box.alert-success {
+  background-color: #f0fdf4;
+  border-bottom: 1px solid #bbf7d0;
+  color: #166534;
+}
+
 .alert-content {
   font-weight: 600;
 }
