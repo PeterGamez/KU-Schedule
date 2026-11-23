@@ -87,7 +87,7 @@ async function handleExportPNG({
     const canvas = await html2canvas(captureTarget, {
       scale: 2,
       useCORS: true,
-      backgroundColor: isDarkMode ? "#0b1120" : "#ffffff",
+      backgroundColor: isDarkMode ? "#000000" : "#ffffff",
       logging: false,
       windowWidth: 1400,
       onclone: (clonedDoc) => {
@@ -107,7 +107,7 @@ async function handleExportPNG({
           clonedArea.style.maxWidth = "1400px";
           clonedArea.style.minWidth = "1400px";
           clonedArea.style.padding = "20px";
-          clonedArea.style.backgroundColor = isDarkMode ? "#0b1120" : "#ffffff";
+          clonedArea.style.backgroundColor = isDarkMode ? "#000000" : "#ffffff";
           clonedArea.style.borderRadius = "8px";
           clonedArea.style.boxShadow = "none";
         }

@@ -63,13 +63,13 @@
   display: flex !important;
 }
 
-/* Dark Theme Overrides for Export */
+/* Dark Theme Overrides for Export (True Black) */
 [data-theme="dark"] .export-header {
-  background: #063d21;
+  background: #091c12;
 }
 
 [data-theme="dark"] .export-footer {
-  background: #0b1120;
-  border-color: #334155;
-  color: #94a3b8;
+  background: #0a0a0a;
+  border-color: #262626;
+  color: #a3a3a3;
 }

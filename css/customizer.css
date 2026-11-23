@@ -12,9 +12,9 @@
 }
 
 [data-theme="dark"] .customizer-section {
-  background-color: #111c2e;
-  border-color: #334155;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  background-color: #0d0d0d;
+  border-color: #262626;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
 }
 
 .customizer-header {
@@ -29,8 +29,8 @@
 }
 
 [data-theme="dark"] .customizer-header {
-  background-color: #0b1120;
-  border-bottom-color: #334155;
+  background-color: #000000;
+  border-bottom-color: #262626;
 }
 
 .customizer-title-wrap {
@@ -85,15 +85,15 @@
 }
 
 [data-theme="dark"] .btn-reset-colors {
-  background-color: #1e293b;
-  color: #cbd5e1;
-  border-color: #475569;
+  background-color: #1a1a1a;
+  color: #d4d4d4;
+  border-color: #333333;
 }
 
 [data-theme="dark"] .btn-reset-colors:hover {
-  background-color: #334155;
+  background-color: #262626;
   color: #ffffff;
-  border-color: #64748b;
+  border-color: #444444;
 }
 
 .customizer-body {
@@ -129,12 +129,12 @@
 }
 
 [data-theme="dark"] .customizer-day-card {
-  background-color: #0f172a;
-  border-color: #1e293b;
+  background-color: #141414;
+  border-color: #222222;
 }
 
 [data-theme="dark"] .customizer-day-card:hover {
-  border-color: #334155;
+  border-color: #333333;
 }
 
 .day-badge-header {
@@ -190,7 +190,7 @@
 }
 
 [data-theme="dark"] .color-input-wrapper input[type="color"] {
-  border-color: #475569;
+  border-color: #333333;
 }
 
 .color-input-wrapper input[type="color"]::-webkit-color-swatch-wrapper {
@@ -256,13 +256,13 @@
 }
 
 [data-theme="dark"] .btn-day-reset {
-  background-color: #1e293b;
-  color: #cbd5e1;
-  border-color: #334155;
+  background-color: #1a1a1a;
+  color: #a3a3a3;
+  border-color: #2a2a2a;
 }
 
 [data-theme="dark"] .btn-day-reset:hover {
-  background-color: #334155;
-  color: #ffffff;
-  border-color: #64748b;
+  background-color: #262626;
+  color: #f5f5f5;
+  border-color: #404040;
 }

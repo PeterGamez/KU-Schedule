@@ -87,7 +87,7 @@ async function initSchedule() {
   let currentLang = "th";
   let currentTheme = "light";
   let currentExportDays = { SAT: true, SUN: true };
-  let currentCustomColors = {};
+  let currentCustomColors = { light: {}, dark: {} };
   let currentIcsFormat = "name_room";
 
   // เริ่มต้นสร้างหัวตาราง โหลดปีการศึกษา และภาษา
@@ -118,7 +118,7 @@ async function initSchedule() {
       };
     }
     if (stored?.ku_schedule_custom_colors) {
-      currentCustomColors = stored.ku_schedule_custom_colors;
+      currentCustomColors = normalizeCustomColors(stored.ku_schedule_custom_colors);
       applyCustomScheduleStyles(currentCustomColors);
     }
   } catch (e) { }
@@ -366,6 +366,8 @@ async function initSchedule() {
 
     if (themeLightBtn) themeLightBtn.classList.toggle("active", currentTheme === "light");
     if (themeDarkBtn) themeDarkBtn.classList.toggle("active", currentTheme === "dark");
+
+    updateCustomizer(currentLang);
   }
 
   // ฟังก์ชันสลับภาษาไทย / อังกฤษ
@@ -456,6 +458,7 @@ async function initSchedule() {
     initCustomizerUI({
       gridContainer: customizerDaysGrid,
       currentLang: lang,
+      currentTheme: currentTheme,
       customColors: currentCustomColors,
       onColorChange: (newColors) => {
         currentCustomColors = newColors;
@@ -466,7 +469,10 @@ async function initSchedule() {
       onResetDay: (dayKey, newColors) => {
         currentCustomColors = newColors;
         try {
-          if (Object.keys(currentCustomColors).length === 0) {
+          if (
+            Object.keys(currentCustomColors.light || {}).length === 0 &&
+            Object.keys(currentCustomColors.dark || {}).length === 0
+          ) {
             chrome.storage.local.remove(["ku_schedule_custom_colors"]);
           } else {
             chrome.storage.local.set({ ku_schedule_custom_colors: currentCustomColors });
@@ -474,11 +480,20 @@ async function initSchedule() {
         } catch (e) { }
       },
       onResetAll: () => {
-        currentCustomColors = {};
+        if (currentCustomColors[currentTheme]) {
+          currentCustomColors[currentTheme] = {};
+        }
         try {
-          chrome.storage.local.remove(["ku_schedule_custom_colors"]);
+          if (
+            Object.keys(currentCustomColors.light || {}).length === 0 &&
+            Object.keys(currentCustomColors.dark || {}).length === 0
+          ) {
+            chrome.storage.local.remove(["ku_schedule_custom_colors"]);
+          } else {
+            chrome.storage.local.set({ ku_schedule_custom_colors: currentCustomColors });
+          }
         } catch (e) { }
-        applyCustomScheduleStyles(null);
+        applyCustomScheduleStyles(currentCustomColors);
         updateCustomizer(currentLang);
       },
     });

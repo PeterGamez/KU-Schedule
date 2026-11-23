@@ -1,32 +1,81 @@
 // ระบบปรับแต่งสีตารางเรียน (KU Schedule Color Customizer)
 
-// สีเริ่มต้นของแต่ละวัน
-const DEFAULT_DAY_COLORS = {
-  MON: { dayBg: "#FACC15", courseBg: "#FEF08A", courseBorder: "#CA8A04" },
-  TUE: { dayBg: "#F472B6", courseBg: "#FBCFE8", courseBorder: "#DB2777" },
-  WED: { dayBg: "#4ADE80", courseBg: "#BBF7D0", courseBorder: "#16A34A" },
-  THU: { dayBg: "#FB923C", courseBg: "#FED7AA", courseBorder: "#EA580C" },
-  FRI: { dayBg: "#38BDF8", courseBg: "#BAE6FD", courseBorder: "#0284C7" },
-  SAT: { dayBg: "#C084FC", courseBg: "#E9D5FF", courseBorder: "#9333EA" },
-  SUN: { dayBg: "#F87171", courseBg: "#FECACA", courseBorder: "#DC2626" },
+// สีเริ่มต้นของแต่ละวันสำหรับแต่ละธีม
+const THEME_DEFAULT_COLORS = {
+  light: {
+    MON: { dayBg: "#FACC15", courseBg: "#FEF08A", courseBorder: "#CA8A04" },
+    TUE: { dayBg: "#F472B6", courseBg: "#FBCFE8", courseBorder: "#DB2777" },
+    WED: { dayBg: "#4ADE80", courseBg: "#BBF7D0", courseBorder: "#16A34A" },
+    THU: { dayBg: "#FB923C", courseBg: "#FED7AA", courseBorder: "#EA580C" },
+    FRI: { dayBg: "#38BDF8", courseBg: "#BAE6FD", courseBorder: "#0284C7" },
+    SAT: { dayBg: "#C084FC", courseBg: "#E9D5FF", courseBorder: "#9333EA" },
+    SUN: { dayBg: "#F87171", courseBg: "#FECACA", courseBorder: "#DC2626" },
+  },
+  dark: {
+    MON: { dayBg: "#ca8a04", courseBg: "#2e2305", courseBorder: "#facc15" },
+    TUE: { dayBg: "#db2777", courseBg: "#330b20", courseBorder: "#f472b6" },
+    WED: { dayBg: "#16a34a", courseBg: "#082816", courseBorder: "#4ade80" },
+    THU: { dayBg: "#ea580c", courseBg: "#311507", courseBorder: "#fb923c" },
+    FRI: { dayBg: "#0284c7", courseBg: "#062330", courseBorder: "#38bdf8" },
+    SAT: { dayBg: "#9333ea", courseBg: "#230d33", courseBorder: "#c084fc" },
+    SUN: { dayBg: "#dc2626", courseBg: "#300c0c", courseBorder: "#f87171" },
+  },
 };
 
+// เพื่อ backward compatibility สำหรับที่ที่อาจอ้างอิง DEFAULT_DAY_COLORS
+const DEFAULT_DAY_COLORS = THEME_DEFAULT_COLORS.light;
+
+// ฟังก์ชันแปลงโครงสร้าง customColors ให้มีทั้ง light และ dark เสมอ
+function normalizeCustomColors(raw) {
+  if (!raw || typeof raw !== "object") {
+    return { light: {}, dark: {} };
+  }
+  if (raw.light || raw.dark) {
+    return {
+      light: raw.light && typeof raw.light === "object" ? { ...raw.light } : {},
+      dark: raw.dark && typeof raw.dark === "object" ? { ...raw.dark } : {},
+    };
+  }
+  const dayKeys = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+  const hasDayKeys = dayKeys.some((k) => k in raw);
+  if (hasDayKeys) {
+    return {
+      light: { ...raw },
+      dark: {},
+    };
+  }
+  return { light: {}, dark: {} };
+}
+
 // คำนวณสีข้อความ (ขาว/ดำ) ตามความสว่างของสีพื้นหลัง เพื่อให้อ่านง่ายเสมอ
-function getContrastTextColor(hexColor) {
-  if (!hexColor || hexColor.length < 6) return "#0f172a";
+// ในธีมมืด หากพื้นหลังสว่างจะใช้สีดำสนิท #000000 เพื่อไม่ให้เกิดปัญหาสีกรม
+function getContrastTextColor(hexColor, isDarkTheme = false) {
+  if (!hexColor || hexColor.length < 6) return isDarkTheme ? "#ffffff" : "#0f172a";
   const hex = hexColor.replace("#", "");
   const r = parseInt(hex.substring(0, 2), 16) || 0;
   const g = parseInt(hex.substring(2, 4), 16) || 0;
   const b = parseInt(hex.substring(4, 6), 16) || 0;
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 140 ? "#0f172a" : "#ffffff";
+  return yiq >= 140 ? (isDarkTheme ? "#000000" : "#0f172a") : "#ffffff";
 }
 
 // แทรกหรืออัปเดต <style id="ku-custom-colors-style"> ลงใน <head>
 function applyCustomScheduleStyles(customColors) {
   let styleEl = document.getElementById("ku-custom-colors-style");
 
-  if (!customColors || Object.keys(customColors).length === 0) {
+  if (!customColors) {
+    if (styleEl) styleEl.remove();
+    return;
+  }
+
+  const normalized = normalizeCustomColors(customColors);
+  const lightColors = normalized.light;
+  const darkColors = normalized.dark;
+
+  const hasLight = Object.keys(lightColors).length > 0;
+  const hasDark = Object.keys(darkColors).length > 0;
+
+  if (!hasLight && !hasDark) {
     if (styleEl) styleEl.remove();
     return;
   }
@@ -38,18 +87,20 @@ function applyCustomScheduleStyles(customColors) {
   }
 
   let css = "";
+
+  // 1. สไตล์ปรับแต่งสำหรับธีมสว่าง (เมื่อไม่มี data-theme="dark")
   DAYS.forEach((dayDef) => {
     const key = dayDef.key;
-    const colors = customColors[key];
+    const colors = lightColors[key];
     if (!colors) return;
 
     const dayClass = dayDef.class;
     const courseClass = `course-${key.toLowerCase()}`;
 
     if (colors.dayBg) {
-      const dayText = getContrastTextColor(colors.dayBg);
+      const dayText = getContrastTextColor(colors.dayBg, false);
       css += `
-        .${dayClass} .day-label, [data-theme="dark"] .${dayClass} .day-label {
+        :root:not([data-theme="dark"]) .${dayClass} .day-label {
           background-color: ${colors.dayBg} !important;
           color: ${dayText} !important;
         }
@@ -57,15 +108,52 @@ function applyCustomScheduleStyles(customColors) {
     }
 
     if (colors.courseBg || colors.courseBorder) {
-      const courseText = colors.courseBg ? getContrastTextColor(colors.courseBg) : "#0f172a";
+      const courseText = colors.courseBg ? getContrastTextColor(colors.courseBg, false) : "#0f172a";
       css += `
-        .${courseClass}, [data-theme="dark"] .${courseClass} {
+        :root:not([data-theme="dark"]) .${courseClass} {
           ${colors.courseBg ? `background-color: ${colors.courseBg} !important;` : ""}
           ${colors.courseBorder ? `border-left-color: ${colors.courseBorder} !important;` : ""}
           color: ${courseText} !important;
         }
-        .${courseClass} .course-code, .${courseClass} .course-name, .${courseClass} .course-meta,
-        [data-theme="dark"] .${courseClass} .course-code, [data-theme="dark"] .${courseClass} .course-name, [data-theme="dark"] .${courseClass} .course-meta {
+        :root:not([data-theme="dark"]) .${courseClass} .course-code,
+        :root:not([data-theme="dark"]) .${courseClass} .course-name,
+        :root:not([data-theme="dark"]) .${courseClass} .course-meta {
+          color: ${courseText} !important;
+        }
+      `;
+    }
+  });
+
+  // 2. สไตล์ปรับแต่งสำหรับธีมมืด (เมื่อมี [data-theme="dark"])
+  DAYS.forEach((dayDef) => {
+    const key = dayDef.key;
+    const colors = darkColors[key];
+    if (!colors) return;
+
+    const dayClass = dayDef.class;
+    const courseClass = `course-${key.toLowerCase()}`;
+
+    if (colors.dayBg) {
+      const dayText = getContrastTextColor(colors.dayBg, true);
+      css += `
+        [data-theme="dark"] .${dayClass} .day-label {
+          background-color: ${colors.dayBg} !important;
+          color: ${dayText} !important;
+        }
+      `;
+    }
+
+    if (colors.courseBg || colors.courseBorder) {
+      const courseText = colors.courseBg ? getContrastTextColor(colors.courseBg, true) : "#ffffff";
+      css += `
+        [data-theme="dark"] .${courseClass} {
+          ${colors.courseBg ? `background-color: ${colors.courseBg} !important;` : ""}
+          ${colors.courseBorder ? `border-left-color: ${colors.courseBorder} !important;` : ""}
+          color: ${courseText} !important;
+        }
+        [data-theme="dark"] .${courseClass} .course-code,
+        [data-theme="dark"] .${courseClass} .course-name,
+        [data-theme="dark"] .${courseClass} .course-meta {
           color: ${courseText} !important;
         }
       `;
@@ -79,6 +167,7 @@ function applyCustomScheduleStyles(customColors) {
 function initCustomizerUI({
   gridContainer,
   currentLang,
+  currentTheme = "light",
   customColors,
   onColorChange,
   onResetDay,
@@ -89,19 +178,33 @@ function initCustomizerUI({
   gridContainer.innerHTML = "";
 
   const t = I18N[currentLang];
+  const isDark = currentTheme === "dark";
+  const themeDefaults = THEME_DEFAULT_COLORS[isDark ? "dark" : "light"];
+
+  if (!customColors || typeof customColors !== "object") {
+    customColors = { light: {}, dark: {} };
+  } else if (!customColors.light && !customColors.dark) {
+    const norm = normalizeCustomColors(customColors);
+    customColors.light = norm.light;
+    customColors.dark = norm.dark;
+  }
+  if (!customColors.light) customColors.light = {};
+  if (!customColors.dark) customColors.dark = {};
+
+  const activeThemeColors = isDark ? customColors.dark : customColors.light;
 
   DAYS.forEach((dayDef) => {
     const key = dayDef.key;
-    const current = (customColors && customColors[key])
-      ? { ...DEFAULT_DAY_COLORS[key], ...customColors[key] }
-      : { ...DEFAULT_DAY_COLORS[key] };
+    const defaults = themeDefaults[key];
+    const userColors = activeThemeColors[key];
+    const current = userColors ? { ...defaults, ...userColors } : { ...defaults };
 
     const card = document.createElement("div");
     card.className = "customizer-day-card";
     card.dataset.day = key;
 
-    const dayText = getContrastTextColor(current.dayBg);
-    const courseText = getContrastTextColor(current.courseBg);
+    const dayText = getContrastTextColor(current.dayBg, isDark);
+    const courseText = getContrastTextColor(current.courseBg, isDark);
 
     card.innerHTML = `
       <div class="day-badge-header" style="background-color: ${current.dayBg}; color: ${dayText};">
@@ -151,10 +254,10 @@ function initCustomizerUI({
         const field = e.target.dataset.field;
         const val = e.target.value;
 
-        if (!customColors[key]) {
-          customColors[key] = { ...DEFAULT_DAY_COLORS[key] };
+        if (!activeThemeColors[key]) {
+          activeThemeColors[key] = { ...defaults };
         }
-        customColors[key][field] = val;
+        activeThemeColors[key][field] = val;
 
         // อัปเดตการแสดงผลใน Preview ของ Card ทันที
         const badge = card.querySelector(".day-badge-header");
@@ -162,10 +265,10 @@ function initCustomizerUI({
 
         if (field === "dayBg" && badge) {
           badge.style.backgroundColor = val;
-          badge.style.color = getContrastTextColor(val);
+          badge.style.color = getContrastTextColor(val, isDark);
         } else if (field === "courseBg" && preview) {
           preview.style.backgroundColor = val;
-          preview.style.color = getContrastTextColor(val);
+          preview.style.color = getContrastTextColor(val, isDark);
         } else if (field === "courseBorder" && preview) {
           preview.style.borderLeftColor = val;
         }
@@ -186,8 +289,8 @@ function initCustomizerUI({
     const dayResetBtn = card.querySelector(".btn-day-reset");
     if (dayResetBtn) {
       dayResetBtn.addEventListener("click", () => {
-        delete customColors[key];
-        const defaultCol = DEFAULT_DAY_COLORS[key];
+        delete activeThemeColors[key];
+        const defaultCol = defaults;
 
         const dayBgInput = card.querySelector('.color-picker-input[data-field="dayBg"]');
         const courseBgInput = card.querySelector('.color-picker-input[data-field="courseBg"]');
@@ -200,12 +303,12 @@ function initCustomizerUI({
         const preview = card.querySelector(".customizer-preview-box");
         if (badge) {
           badge.style.backgroundColor = defaultCol.dayBg;
-          badge.style.color = getContrastTextColor(defaultCol.dayBg);
+          badge.style.color = getContrastTextColor(defaultCol.dayBg, isDark);
         }
         if (preview) {
           preview.style.backgroundColor = defaultCol.courseBg;
           preview.style.borderLeftColor = defaultCol.courseBorder;
-          preview.style.color = getContrastTextColor(defaultCol.courseBg);
+          preview.style.color = getContrastTextColor(defaultCol.courseBg, isDark);
         }
 
         applyCustomScheduleStyles(customColors);
