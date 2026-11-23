@@ -63,7 +63,7 @@
   display: flex !important;
 }
 
-/* Dark Theme Overrides for Export (True Black) */
+/* Dark Theme Overrides for Export */
 [data-theme="dark"] .export-header {
   background: #091c12;
 }
