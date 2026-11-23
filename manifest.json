@@ -17,7 +17,7 @@
     "client_id": "204873181745-iosj9ue4ackiau2sraf45dub5uaafv6o.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/calendar.app.created",
-      "https://www.googleapis.com/auth/calendar.calendarlist.readonly"
+      "https://www.googleapis.com/auth/calendar.calendarlist"
     ]
   },
   "background": {
