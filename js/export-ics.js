@@ -1,5 +1,76 @@
 // ส่งออกตารางเรียนเป็นไฟล์ iCalendar (.ics) สำหรับ Google Calendar / Apple Calendar
 
+// รายการ 24 สีมาตรฐานของ Google Calendar (สำหรับปฏิทินและกิจกรรม)
+const GOOGLE_CALENDAR_COLORS = [
+  // แถวที่ 1 (12 สี)
+  { id: "radicchio", name: "Radicchio", hex: "#ad1457", eventColorId: "11" },
+  { id: "cherry_blossom", name: "Cherry Blossom", hex: "#d81b60", eventColorId: "4" },
+  { id: "flamingo", name: "Flamingo", hex: "#e67c73", eventColorId: "4" },
+  { id: "tomato", name: "Tomato", hex: "#d50000", eventColorId: "11" },
+  { id: "tangerine", name: "Tangerine", hex: "#f4511e", eventColorId: "6" },
+  { id: "pumpkin", name: "Pumpkin", hex: "#ef6c00", eventColorId: "6" },
+  { id: "mango", name: "Mango", hex: "#f09300", eventColorId: "5" },
+  { id: "banana", name: "Banana", hex: "#f6bf26", eventColorId: "5" },
+  { id: "citron", name: "Citron", hex: "#e4c441", eventColorId: "5" },
+  { id: "avocado", name: "Avocado", hex: "#c0ca33", eventColorId: "2" },
+  { id: "pistachio", name: "Pistachio", hex: "#7cb342", eventColorId: "2" },
+  { id: "basil", name: "Basil", hex: "#0b8043", eventColorId: "10" },
+
+  // แถวที่ 2 (12 สี)
+  { id: "eucalyptus", name: "Eucalyptus", hex: "#009688", eventColorId: "2" },
+  { id: "sage", name: "Sage", hex: "#33b679", eventColorId: "2" },
+  { id: "peacock", name: "Peacock", hex: "#039be5", eventColorId: "7" },
+  { id: "cobalt", name: "Cobalt", hex: "#4285f4", eventColorId: "9" },
+  { id: "blueberry", name: "Blueberry", hex: "#3f51b5", eventColorId: "9" },
+  { id: "lavender", name: "Lavender", hex: "#7986cb", eventColorId: "1" },
+  { id: "wisteria", name: "Wisteria", hex: "#b39ddb", eventColorId: "3" },
+  { id: "amethyst", name: "Amethyst", hex: "#9e69af", eventColorId: "3" },
+  { id: "grape", name: "Grape", hex: "#8e24aa", eventColorId: "3" },
+  { id: "cocoa", name: "Cocoa", hex: "#795548", eventColorId: "8" },
+  { id: "graphite", name: "Graphite", hex: "#616161", eventColorId: "8" },
+  { id: "birch", name: "Birch", hex: "#a79b8e", eventColorId: "8" },
+];
+
+const GCAL_EVENT_COLORS = {
+  "1": "#7986cb", // Lavender
+  "2": "#33b679", // Sage
+  "3": "#8e24aa", // Grape
+  "4": "#e67c73", // Flamingo
+  "5": "#f6bf26", // Banana
+  "6": "#f4511e", // Tangerine
+  "7": "#039be5", // Peacock
+  "8": "#616161", // Graphite
+  "9": "#3f51b5", // Blueberry
+  "10": "#0b8043", // Basil
+  "11": "#d50000", // Tomato
+};
+
+// ค้นหา Event Color ID (1 - 11) ที่ใกล้เคียงกับสี HEX ที่กำหนดมากที่สุด
+function getClosestEventColorId(hex) {
+  if (!hex) return "10";
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.substring(0, 2), 16) || 0;
+  const g = parseInt(clean.substring(2, 4), 16) || 0;
+  const b = parseInt(clean.substring(4, 6), 16) || 0;
+
+  let bestId = "10";
+  let minDist = Infinity;
+
+  Object.entries(GCAL_EVENT_COLORS).forEach(([id, targetHex]) => {
+    const tClean = targetHex.replace("#", "");
+    const tr = parseInt(tClean.substring(0, 2), 16) || 0;
+    const tg = parseInt(tClean.substring(2, 4), 16) || 0;
+    const tb = parseInt(tClean.substring(4, 6), 16) || 0;
+    const dist = Math.pow(r - tr, 2) + Math.pow(g - tg, 2) + Math.pow(b - tb, 2);
+    if (dist < minDist) {
+      minDist = dist;
+      bestId = id;
+    }
+  });
+
+  return bestId;
+}
+
 // ดึงประเภทคาบเรียน (Lec / Lab หรือ บรรยาย / ปฏิบัติ) จาก JSON ของ My KU
 // หมายเหตุ: ใน JSON ของ My KU:
 // - 'section_type_th' คือ "บรรยาย" หรือ "ปฏิบัติ"
@@ -89,8 +160,8 @@ function formatCourseTitle(course, formatKey = "name_room", lang = "th") {
   }
 }
 
-// สร้างเนื้อหาไฟล์ iCalendar (RFC 5545) จากรายการวิชาเรียน
-function generateICSContent(courses, lang, titleFormat = "name_room") {
+// สร้างเนื้อหาไฟล์ iCalendar (RFC 5545 / RFC 7986) จากรายการวิชาเรียน
+function generateICSContent(courses, lang, titleFormat = "name_room", selectedColor = null) {
   const dayMap = { MON: 0, TUE: 1, WED: 2, THU: 3, FRI: 4, SAT: 5, SUN: 6 };
   const pad = (n) => String(n).padStart(2, "0");
 
@@ -106,6 +177,18 @@ function generateICSContent(courses, lang, titleFormat = "name_room") {
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${calTitle}`,
     "X-WR-TIMEZONE:Asia/Bangkok",
+  ];
+
+  // กำหนดสีของปฏิทินในระดับ VCALENDAR (รองรับ Apple Calendar, Outlook และ RFC 7986)
+  if (selectedColor && selectedColor.hex) {
+    icsLines.push(
+      `X-APPLE-CALENDAR-COLOR:${selectedColor.hex}`,
+      `X-OUTLOOK-COLOR:${selectedColor.hex}`,
+      `COLOR:${selectedColor.hex}`
+    );
+  }
+
+  icsLines.push(
     "BEGIN:VTIMEZONE",
     "TZID:Asia/Bangkok",
     "X-LIC-LOCATION:Asia/Bangkok",
@@ -115,8 +198,8 @@ function generateICSContent(courses, lang, titleFormat = "name_room") {
     "TZNAME:ICT",
     "DTSTART:19700101T000000",
     "END:STANDARD",
-    "END:VTIMEZONE",
-  ];
+    "END:VTIMEZONE"
+  );
 
   courses.forEach((c) => {
     const timing = getCourseEventTiming(c);
@@ -142,7 +225,15 @@ function generateICSContent(courses, lang, titleFormat = "name_room") {
       `DTSTART;TZID=Asia/Bangkok:${timing.dtStart}`,
       `DTEND;TZID=Asia/Bangkok:${timing.dtEnd}`,
       `RRULE:FREQ=WEEKLY;UNTIL=${timing.untilStr}`,
-      "STATUS:CONFIRMED",
+      "STATUS:CONFIRMED"
+    );
+
+    // กำหนดสีของกิจกรรมรายวิชา (RFC 7986)
+    if (selectedColor && selectedColor.hex) {
+      icsLines.push(`COLOR:${selectedColor.hex}`);
+    }
+
+    icsLines.push(
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
       "TRIGGER:-PT30M",
@@ -199,6 +290,7 @@ async function handleExportICS({
   currentStudentInfo,
   currentLang,
   titleFormat = "name_room",
+  selectedColor = null,
   showAlertKey,
   hideAlert,
   setExportIcsLoading,
@@ -213,7 +305,7 @@ async function handleExportICS({
   setExportIcsLoading(true);
 
   try {
-    const icsString = generateICSContent(currentCourses, currentLang, titleFormat);
+    const icsString = generateICSContent(currentCourses, currentLang, titleFormat, selectedColor);
     const blob = new Blob([icsString], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

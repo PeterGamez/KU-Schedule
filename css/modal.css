@@ -367,3 +367,221 @@
   background-color: #047857;
 }
 
+/* ==========================================================================
+   Google Calendar Color Picker in Modal
+   ========================================================================== */
+.modal-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.modal-field-badge {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="dark"] .modal-field-badge {
+  color: #a3a3a3;
+}
+
+.gcal-color-picker-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+[data-theme="dark"] .gcal-color-picker-card {
+  background: #0d0d0d;
+  border-color: #262626;
+}
+
+.gcal-palette-top {
+  display: flex;
+  align-items: center;
+}
+
+.gcal-custom-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid #94a3b8;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  color: #475569;
+  transition: all 0.15s ease;
+  padding: 0;
+  outline: none;
+}
+
+.gcal-custom-btn:hover {
+  border-color: #0f172a;
+  color: #0f172a;
+  transform: scale(1.08);
+}
+
+[data-theme="dark"] .gcal-custom-btn {
+  background: #1a1a1a;
+  border-color: #444444;
+  color: #d4d4d4;
+}
+
+[data-theme="dark"] .gcal-custom-btn:hover {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.gcal-custom-btn.active {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.35);
+}
+
+.gcal-hidden-color-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.gcal-color-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 6px;
+}
+
+.gcal-color-circle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  outline: none;
+}
+
+.gcal-color-circle:hover {
+  transform: scale(1.18);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+  z-index: 2;
+}
+
+.gcal-color-circle.active {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 3.5px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="dark"] .gcal-color-circle.active {
+  box-shadow: 0 0 0 2px #0d0d0d, 0 0 0 3.5px rgba(255, 255, 255, 0.85);
+}
+
+.gcal-color-circle .check-icon {
+  width: 12px;
+  height: 12px;
+  stroke: #ffffff;
+  stroke-width: 3.2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+}
+
+.gcal-default-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: fit-content;
+  align-self: flex-start;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.gcal-default-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+[data-theme="dark"] .gcal-default-btn {
+  background-color: #141414;
+  border-color: #2a2a2a;
+  color: #d4d4d4;
+}
+
+[data-theme="dark"] .gcal-default-btn:hover {
+  background-color: #1f1f1f;
+  border-color: #3a3a3a;
+  color: #ffffff;
+}
+
+.gcal-default-btn.active {
+  background-color: #e8f0fe;
+  border-color: #d2e3fc;
+  color: #1a73e8;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .gcal-default-btn.active {
+  background-color: #1e293b;
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+.gcal-radio-indicator {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.gcal-default-btn.active .gcal-radio-indicator {
+  border-color: #1a73e8;
+  background-color: #1a73e8;
+  box-shadow: inset 0 0 0 3px #e8f0fe;
+}
+
+[data-theme="dark"] .gcal-default-btn.active .gcal-radio-indicator {
+  border-color: #60a5fa;
+  background-color: #60a5fa;
+  box-shadow: inset 0 0 0 3px #1e293b;
+}
+

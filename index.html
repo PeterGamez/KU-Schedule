@@ -182,6 +182,28 @@
           <select id="icsFormatSelect" class="modal-select"></select>
         </div>
 
+        <div class="modal-field">
+          <div class="modal-field-header">
+            <label class="modal-label" id="icsColorLabel">สีปฏิทิน (Google Calendar):</label>
+            <span id="icsColorName" class="modal-field-badge">ค่าเริ่มต้น</span>
+          </div>
+          <div class="gcal-color-picker-card">
+            <div class="gcal-palette-top">
+              <button type="button" id="gcalCustomColorBtn" class="gcal-custom-btn" title="กำหนดสีเอง">
+                <svg class="pencil-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                </svg>
+                <input type="color" id="gcalCustomColorInput" class="gcal-hidden-color-input" title="เลือกสีเอง" tabindex="-1" />
+              </button>
+            </div>
+            <div class="gcal-color-grid" id="gcalColorGrid"></div>
+            <button type="button" id="gcalDefaultBtn" class="gcal-default-btn active">
+              <span class="gcal-radio-indicator"></span>
+              <span id="gcalDefaultText">ค่าเริ่มต้น</span>
+            </button>
+          </div>
+        </div>
+
         <div class="modal-preview-box">
           <div id="icsPreviewLabel" class="preview-title">ตัวอย่างการแสดงผล:</div>
           <div id="icsPreviewText" class="preview-content"></div>

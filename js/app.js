@@ -35,6 +35,13 @@ async function initSchedule() {
   const icsModalSubtitle = document.getElementById("icsModalSubtitle");
   const icsFormatLabel = document.getElementById("icsFormatLabel");
   const icsFormatSelect = document.getElementById("icsFormatSelect");
+  const icsColorLabel = document.getElementById("icsColorLabel");
+  const icsColorName = document.getElementById("icsColorName");
+  const gcalColorGrid = document.getElementById("gcalColorGrid");
+  const gcalDefaultBtn = document.getElementById("gcalDefaultBtn");
+  const gcalDefaultText = document.getElementById("gcalDefaultText");
+  const gcalCustomColorBtn = document.getElementById("gcalCustomColorBtn");
+  const gcalCustomColorInput = document.getElementById("gcalCustomColorInput");
   const icsPreviewLabel = document.getElementById("icsPreviewLabel");
   const icsPreviewText = document.getElementById("icsPreviewText");
   const icsModalCloseBtn = document.getElementById("icsModalCloseBtn");
@@ -88,6 +95,7 @@ async function initSchedule() {
   let currentTheme = "light";
   let currentExportDays = { SAT: true, SUN: true };
   let currentCustomColors = { light: {}, dark: {} };
+  let currentCalendarColor = { id: "default", hex: null, eventColorId: null, name: "Default" };
   let currentIcsFormat = "name_room";
 
   // เริ่มต้นสร้างหัวตาราง โหลดปีการศึกษา และภาษา
@@ -98,6 +106,7 @@ async function initSchedule() {
     const stored = await chrome.storage.local.get([
       "ku_schedule_lang",
       "ku_schedule_ics_format",
+      "ku_schedule_calendar_color",
       "ku_schedule_theme",
       "ku_schedule_export_days",
       "ku_schedule_custom_colors",
@@ -107,6 +116,9 @@ async function initSchedule() {
     }
     if (stored?.ku_schedule_ics_format) {
       currentIcsFormat = stored.ku_schedule_ics_format;
+    }
+    if (stored?.ku_schedule_calendar_color) {
+      currentCalendarColor = stored.ku_schedule_calendar_color;
     }
     if (stored?.ku_schedule_theme) {
       currentTheme = stored.ku_schedule_theme;
@@ -192,11 +204,126 @@ async function initSchedule() {
   function updateIcsPreview() {
     if (!icsPreviewText || !currentCourses || currentCourses.length === 0) return;
     icsPreviewText.textContent = formatCourseTitle(currentCourses[0], currentIcsFormat, currentLang);
+    if (currentCalendarColor && currentCalendarColor.hex) {
+      icsPreviewText.style.color = currentCalendarColor.hex;
+    } else {
+      icsPreviewText.style.color = "";
+    }
+  }
+
+  function initIcsColorPicker(lang = currentLang) {
+    if (!gcalColorGrid) return;
+    gcalColorGrid.innerHTML = "";
+
+    const t = I18N[lang];
+
+    function updateColorUI(selected) {
+      currentCalendarColor = selected;
+      try {
+        chrome.storage.local.set({ ku_schedule_calendar_color: currentCalendarColor });
+      } catch (e) { }
+
+      const isDef = !selected || selected.id === "default" || !selected.hex;
+
+      if (gcalDefaultBtn) {
+        gcalDefaultBtn.classList.toggle("active", isDef);
+      }
+
+      const circles = gcalColorGrid.querySelectorAll(".gcal-color-circle");
+      circles.forEach((c) => {
+        const match = !isDef && c.dataset.colorId === selected.id;
+        c.classList.toggle("active", match);
+        const check = c.querySelector(".check-icon");
+        if (check) check.classList.toggle("hidden", !match);
+      });
+
+      if (gcalCustomColorBtn) {
+        const isCustom = !isDef && selected.id === "custom";
+        gcalCustomColorBtn.classList.toggle("active", isCustom);
+        if (isCustom && selected.hex) {
+          gcalCustomColorBtn.style.backgroundColor = selected.hex;
+          gcalCustomColorBtn.style.borderColor = selected.hex;
+          gcalCustomColorBtn.style.color = typeof getContrastTextColor === "function" ? getContrastTextColor(selected.hex, currentTheme === "dark") : "#ffffff";
+        } else {
+          gcalCustomColorBtn.style.backgroundColor = "";
+          gcalCustomColorBtn.style.borderColor = "";
+          gcalCustomColorBtn.style.color = "";
+        }
+      }
+
+      if (icsColorName) {
+        if (isDef) {
+          icsColorName.textContent = t.gcalColors?.default || "Default";
+        } else if (selected.id === "custom") {
+          icsColorName.textContent = `${t.gcalColors?.custom || "Custom"} (${selected.hex})`;
+        } else {
+          icsColorName.textContent = t.gcalColors?.[selected.id] || selected.name || selected.hex;
+        }
+      }
+
+      updateIcsPreview();
+    }
+
+    if (Array.isArray(GOOGLE_CALENDAR_COLORS)) {
+      GOOGLE_CALENDAR_COLORS.forEach((col) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "gcal-color-circle";
+        btn.dataset.colorId = col.id;
+        btn.dataset.hex = col.hex;
+        btn.style.backgroundColor = col.hex;
+        btn.title = t.gcalColors?.[col.id] || col.name;
+
+        const isMatch = currentCalendarColor && currentCalendarColor.id === col.id;
+        if (isMatch) btn.classList.add("active");
+
+        btn.innerHTML = `
+          <svg class="check-icon ${isMatch ? '' : 'hidden'}" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        `;
+
+        btn.addEventListener("click", () => {
+          updateColorUI({
+            id: col.id,
+            name: col.name,
+            hex: col.hex,
+            eventColorId: col.eventColorId,
+          });
+        });
+
+        gcalColorGrid.appendChild(btn);
+      });
+    }
+
+    if (gcalDefaultBtn) {
+      gcalDefaultBtn.onclick = () => {
+        updateColorUI({ id: "default", hex: null, eventColorId: null, name: "Default" });
+      };
+    }
+
+    if (gcalCustomColorInput) {
+      const handleCustom = (e) => {
+        const val = e.target.value;
+        const eventId = typeof getClosestEventColorId === "function" ? getClosestEventColorId(val) : "10";
+        updateColorUI({
+          id: "custom",
+          name: "Custom",
+          hex: val,
+          eventColorId: eventId,
+        });
+      };
+      gcalCustomColorInput.addEventListener("input", handleCustom);
+      gcalCustomColorInput.addEventListener("change", handleCustom);
+    }
+
+    updateColorUI(currentCalendarColor || { id: "default", hex: null, eventColorId: null, name: "Default" });
   }
 
   function openIcsModal() {
     if (!icsModal) return;
     initIcsFormatOptions(currentLang);
+    initIcsColorPicker(currentLang);
     icsModal.classList.remove("hidden");
   }
 
@@ -251,6 +378,7 @@ async function initSchedule() {
         currentStudentInfo,
         currentLang,
         titleFormat: currentIcsFormat,
+        selectedColor: currentCalendarColor,
         showAlertKey,
         hideAlert,
         setExportIcsLoading,
@@ -282,6 +410,7 @@ async function initSchedule() {
           studentInfo: currentStudentInfo,
           lang: currentLang,
           titleFormat: currentIcsFormat,
+          selectedColor: currentCalendarColor,
           onProgress: (msg) => {
             if (modalSyncProgressText) modalSyncProgressText.textContent = msg;
           },
@@ -403,6 +532,9 @@ async function initSchedule() {
     if (icsModalTitle) icsModalTitle.textContent = t.icsModalTitle;
     if (icsModalSubtitle) icsModalSubtitle.textContent = t.icsModalSubtitle;
     if (icsFormatLabel) icsFormatLabel.textContent = t.icsFormatLabel;
+    if (icsColorLabel) icsColorLabel.textContent = t.icsColorLabel;
+    if (gcalDefaultText) gcalDefaultText.textContent = t.gcalColors?.default || t.icsColorDefault;
+    if (gcalCustomColorBtn) gcalCustomColorBtn.title = t.gcalColors?.custom || t.icsColorCustom;
     if (icsPreviewLabel) icsPreviewLabel.textContent = t.icsPreviewLabel;
     if (icsModalCancelBtn) icsModalCancelBtn.textContent = t.icsCancelBtn;
     if (icsModalDownloadBtnText) icsModalDownloadBtnText.textContent = t.icsModalDownloadBtn;
@@ -410,6 +542,7 @@ async function initSchedule() {
       icsModalSyncBtnText.textContent = isSyncingGoogleCalendar ? t.icsModalSyncing : t.icsModalSyncBtn;
     }
     initIcsFormatOptions(currentLang);
+    initIcsColorPicker(currentLang);
 
     if (fetchBtnText) {
       fetchBtnText.textContent = isFetching ? t.fetchBtnLoading : t.fetchBtn;

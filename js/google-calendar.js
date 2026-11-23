@@ -31,7 +31,7 @@ function removeCachedAuthToken(token) {
 }
 
 // ค้นหาหรือสร้างปฏิทินย่อยสำหรับเทอมนั้นๆ เพื่อความสะดวกในการเปิด/ปิด หรือลบทั้งเทอม
-async function getOrCreateSecondaryCalendar(token, title, lang = "th") {
+async function getOrCreateSecondaryCalendar(token, title, lang = "th", selectedColor = null) {
   const headers = {
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
@@ -80,6 +80,23 @@ async function getOrCreateSecondaryCalendar(token, title, lang = "th") {
   }
 
   const newCal = await createRes.json();
+
+  // กำหนดสีของปฏิทินย่อยใน calendarList (ถ้ามีการเลือกสี)
+  if (selectedColor && selectedColor.hex) {
+    try {
+      await fetch(`https://www.googleapis.com/calendar/v3/users/me/calendarList/${encodeURIComponent(newCal.id)}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({
+          backgroundColor: selectedColor.hex,
+          foregroundColor: "#ffffff",
+        }),
+      });
+    } catch (colorErr) {
+      console.warn("Could not patch calendarList color:", colorErr);
+    }
+  }
+
   return newCal.id;
 }
 
@@ -148,6 +165,7 @@ async function syncScheduleToGoogleCalendar({
   studentInfo,
   lang = "th",
   titleFormat = "name_room",
+  selectedColor = null,
   onProgress = () => { },
 }) {
   if (!courses || courses.length === 0) {
@@ -173,13 +191,13 @@ async function syncScheduleToGoogleCalendar({
   onProgress(lang === "en" ? "Setting up calendar..." : "กำลังจัดเตรียมปฏิทิน...");
   let calendarId;
   try {
-    calendarId = await getOrCreateSecondaryCalendar(token, calTitle, lang);
+    calendarId = await getOrCreateSecondaryCalendar(token, calTitle, lang, selectedColor);
   } catch (err) {
     // หาก Token หมดอายุ ลองเคลียร์แคชและขอใหม่ 1 ครั้ง
     if (String(err).includes("401")) {
       await removeCachedAuthToken(token);
       token = await getGoogleAuthToken(true);
-      calendarId = await getOrCreateSecondaryCalendar(token, calTitle, lang);
+      calendarId = await getOrCreateSecondaryCalendar(token, calTitle, lang, selectedColor);
     } else {
       throw err;
     }
@@ -215,6 +233,11 @@ async function syncScheduleToGoogleCalendar({
         overrides: [{ method: "popup", minutes: 30 }],
       },
     };
+
+    // กำหนดสีของกิจกรรม (event colorId ใน Google Calendar API)
+    if (selectedColor && selectedColor.eventColorId) {
+      eventPayload.colorId = String(selectedColor.eventColorId);
+    }
 
     await insertCalendarEvent(token, calendarId, eventPayload);
     insertedCount++;
