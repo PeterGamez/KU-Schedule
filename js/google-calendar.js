@@ -193,8 +193,8 @@ async function syncScheduleToGoogleCalendar({
   try {
     calendarId = await getOrCreateSecondaryCalendar(token, calTitle, lang, selectedColor);
   } catch (err) {
-    // หาก Token หมดอายุ ลองเคลียร์แคชและขอใหม่ 1 ครั้ง
-    if (String(err).includes("401")) {
+    // หาก Token หมดอายุ หรือสิทธิ์ไม่พอ (401/403) ลองเคลียร์แคชและขอ Token ใหม่ 1 ครั้ง
+    if (String(err).includes("401") || String(err).includes("403")) {
       await removeCachedAuthToken(token);
       token = await getGoogleAuthToken(true);
       calendarId = await getOrCreateSecondaryCalendar(token, calTitle, lang, selectedColor);
@@ -233,11 +233,6 @@ async function syncScheduleToGoogleCalendar({
         overrides: [{ method: "popup", minutes: 30 }],
       },
     };
-
-    // กำหนดสีของกิจกรรม (event colorId ใน Google Calendar API)
-    if (selectedColor && selectedColor.eventColorId) {
-      eventPayload.colorId = String(selectedColor.eventColorId);
-    }
 
     await insertCalendarEvent(token, calendarId, eventPayload);
     insertedCount++;
