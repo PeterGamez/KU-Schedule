@@ -82,14 +82,10 @@ function renderScheduleGrid(courses, daysBody, currentLang) {
       const left = ((startMin - 480) / TOTAL_MINUTES) * 100;
       const width = ((endMin - startMin) / TOTAL_MINUTES) * 100;
 
-      const color = DAY_THEMES[dayDef.key];
-
       const block = document.createElement("div");
-      block.className = "course-block";
+      block.className = `course-block course-${dayDef.key.toLowerCase()}`;
       block.style.left = `calc(${Math.max(0, left)}% + 3px)`;
       block.style.width = `calc(${Math.min(100 - left, width)}% - 6px)`;
-      block.style.backgroundColor = color.bg;
-      block.style.borderLeftColor = color.border;
 
       const subjectName = getCourseName(c, currentLang);
       const room = getCourseRoom(c, currentLang);

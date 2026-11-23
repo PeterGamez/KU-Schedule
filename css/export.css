@@ -52,3 +52,14 @@
 .is-exporting .export-footer {
   display: flex !important;
 }
+
+/* Dark Theme Overrides for Export */
+[data-theme="dark"] .export-header {
+  background: #063d21;
+}
+
+[data-theme="dark"] .export-footer {
+  background: #0b1120;
+  border-color: #334155;
+  color: #94a3b8;
+}

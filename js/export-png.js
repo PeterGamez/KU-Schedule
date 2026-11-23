@@ -81,14 +81,18 @@ async function handleExportPNG({
     exportTimestamp.textContent = I18N[currentLang].exportTimestamp(dateStr, timeStr);
 
     const captureTarget = document.getElementById("scheduleCaptureArea");
+    const isDarkMode = document.documentElement.getAttribute("data-theme") === "dark";
 
     const canvas = await html2canvas(captureTarget, {
       scale: 2,
       useCORS: true,
-      backgroundColor: "#ffffff",
+      backgroundColor: isDarkMode ? "#0b1120" : "#ffffff",
       logging: false,
       windowWidth: 1400,
       onclone: (clonedDoc) => {
+        if (isDarkMode) {
+          clonedDoc.documentElement.setAttribute("data-theme", "dark");
+        }
         const clonedArea = clonedDoc.getElementById("scheduleCaptureArea");
         if (clonedArea) {
           clonedArea.classList.add("is-exporting");
@@ -96,7 +100,7 @@ async function handleExportPNG({
           clonedArea.style.maxWidth = "1400px";
           clonedArea.style.minWidth = "1400px";
           clonedArea.style.padding = "20px";
-          clonedArea.style.backgroundColor = "#ffffff";
+          clonedArea.style.backgroundColor = isDarkMode ? "#0b1120" : "#ffffff";
           clonedArea.style.borderRadius = "8px";
           clonedArea.style.boxShadow = "none";
         }

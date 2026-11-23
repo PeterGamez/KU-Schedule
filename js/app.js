@@ -56,6 +56,10 @@ async function initSchedule() {
   const langThBtn = document.getElementById("langThBtn");
   const langEnBtn = document.getElementById("langEnBtn");
 
+  const themeSwitch = document.getElementById("themeSwitch");
+  const themeLightBtn = document.getElementById("themeLightBtn");
+  const themeDarkBtn = document.getElementById("themeDarkBtn");
+
   const alertBox = document.getElementById("alertBox");
   const alertMessage = document.getElementById("alertMessage");
   const alertLink = document.getElementById("alertLink");
@@ -76,6 +80,7 @@ async function initSchedule() {
   let isSyncingGoogleCalendar = false;
   let currentAlertKey = null;
   let currentLang = "th";
+  let currentTheme = "light";
   let currentIcsFormat = "name_room";
 
   // เริ่มต้นสร้างหัวตาราง โหลดปีการศึกษา และภาษา
@@ -83,14 +88,18 @@ async function initSchedule() {
   updateExportButtonsState();
 
   try {
-    const stored = await chrome.storage.local.get(["ku_schedule_lang", "ku_schedule_ics_format"]);
+    const stored = await chrome.storage.local.get(["ku_schedule_lang", "ku_schedule_ics_format", "ku_schedule_theme"]);
     if (stored?.ku_schedule_lang) {
       currentLang = stored.ku_schedule_lang;
     }
     if (stored?.ku_schedule_ics_format) {
       currentIcsFormat = stored.ku_schedule_ics_format;
     }
+    if (stored?.ku_schedule_theme) {
+      currentTheme = stored.ku_schedule_theme;
+    }
   } catch (e) { }
+  setTheme(currentTheme);
   setLanguage(currentLang);
 
   // โหลดแคชเดิม (ถ้ามี)
@@ -288,6 +297,13 @@ async function initSchedule() {
     langEnBtn.addEventListener("click", () => setLanguage("en"));
   }
 
+  if (themeLightBtn) {
+    themeLightBtn.addEventListener("click", () => setTheme("light"));
+  }
+  if (themeDarkBtn) {
+    themeDarkBtn.addEventListener("click", () => setTheme("dark"));
+  }
+
   if (yearSelect) {
     yearSelect.addEventListener("change", () => {
       userHasSelectedTerm = true;
@@ -300,6 +316,23 @@ async function initSchedule() {
       userHasSelectedTerm = true;
       handleFetch();
     });
+  }
+
+  // ฟังก์ชันสลับธีม สว่าง (ขาว) / มืด (ดำ)
+  function setTheme(theme) {
+    currentTheme = theme === "dark" ? "dark" : "light";
+    try {
+      chrome.storage.local.set({ ku_schedule_theme: currentTheme });
+    } catch (e) { }
+
+    if (currentTheme === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+
+    if (themeLightBtn) themeLightBtn.classList.toggle("active", currentTheme === "light");
+    if (themeDarkBtn) themeDarkBtn.classList.toggle("active", currentTheme === "dark");
   }
 
   // ฟังก์ชันสลับภาษาไทย / อังกฤษ
@@ -321,6 +354,10 @@ async function initSchedule() {
     if (dayCorner) dayCorner.textContent = t.dayCorner;
     if (exportCredit) exportCredit.textContent = t.exportCredit;
     if (alertLink) alertLink.textContent = t.alertLink;
+
+    if (themeSwitch) themeSwitch.title = t.themeSwitchTitle;
+    if (themeLightBtn) themeLightBtn.title = t.themeLightTitle;
+    if (themeDarkBtn) themeDarkBtn.title = t.themeDarkTitle;
 
     if (yearSelect) yearSelect.title = t.yearTitle;
     if (semesterSelect) semesterSelect.title = t.semesterTitle;

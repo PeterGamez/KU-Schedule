@@ -8,6 +8,13 @@
   --font-sans: "Sarabun", "Leelawadee UI", "Thonburi", -apple-system, sans-serif;
 }
 
+[data-theme="dark"] {
+  --bg-main: #0b1120;
+  --border-color: #334155;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -79,4 +86,16 @@ body {
 
 .alert-btn:hover {
   background-color: #b91c1c;
+}
+
+[data-theme="dark"] .alert-box {
+  background-color: #450a0a;
+  border-bottom: 1px solid #7f1d1d;
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .alert-box.alert-success {
+  background-color: #052e16;
+  border-bottom: 1px solid #14532d;
+  color: #86efac;
 }
