@@ -69,6 +69,11 @@ async function initSchedule() {
   const dayCorner = document.getElementById("dayCorner");
   const exportCredit = document.getElementById("exportCredit");
 
+  const customizerDaysGrid = document.getElementById("customizerDaysGrid");
+  const customizerTitleText = document.getElementById("customizerTitleText");
+  const customizerSubtitle = document.getElementById("customizerSubtitle");
+  const resetColorsBtnText = document.getElementById("resetColorsBtnText");
+
   // App State
   let currentCourses = null;
   let currentStudentInfo = null;
@@ -82,6 +87,7 @@ async function initSchedule() {
   let currentLang = "th";
   let currentTheme = "light";
   let currentExportDays = { SAT: true, SUN: true };
+  let currentCustomColors = {};
   let currentIcsFormat = "name_room";
 
   // เริ่มต้นสร้างหัวตาราง โหลดปีการศึกษา และภาษา
@@ -94,6 +100,7 @@ async function initSchedule() {
       "ku_schedule_ics_format",
       "ku_schedule_theme",
       "ku_schedule_export_days",
+      "ku_schedule_custom_colors",
     ]);
     if (stored?.ku_schedule_lang) {
       currentLang = stored.ku_schedule_lang;
@@ -110,9 +117,14 @@ async function initSchedule() {
         SUN: stored.ku_schedule_export_days.SUN !== false,
       };
     }
+    if (stored?.ku_schedule_custom_colors) {
+      currentCustomColors = stored.ku_schedule_custom_colors;
+      applyCustomScheduleStyles(currentCustomColors);
+    }
   } catch (e) { }
   setTheme(currentTheme);
   setLanguage(currentLang);
+  updateCustomizer(currentLang);
 
   // โหลดแคชเดิม (ถ้ามี)
   const cached = await loadCachedSchedule();
@@ -431,6 +443,45 @@ async function initSchedule() {
     }
 
     renderScheduleGrid(currentCourses || [], daysBody, currentLang, currentExportDays, handleToggleExportDay);
+    updateCustomizer(currentLang);
+  }
+
+  // อัปเดตและจัดการเมนูเลือกสีตารางเรียน (Color Customizer)
+  function updateCustomizer(lang) {
+    const t = I18N[lang];
+    if (customizerTitleText) customizerTitleText.textContent = t.customizerTitle;
+    if (customizerSubtitle) customizerSubtitle.textContent = t.customizerSubtitle;
+    if (resetColorsBtnText) resetColorsBtnText.textContent = t.customizerResetAllBtn || t.customizerResetBtn;
+
+    initCustomizerUI({
+      gridContainer: customizerDaysGrid,
+      currentLang: lang,
+      customColors: currentCustomColors,
+      onColorChange: (newColors) => {
+        currentCustomColors = newColors;
+        try {
+          chrome.storage.local.set({ ku_schedule_custom_colors: currentCustomColors });
+        } catch (e) { }
+      },
+      onResetDay: (dayKey, newColors) => {
+        currentCustomColors = newColors;
+        try {
+          if (Object.keys(currentCustomColors).length === 0) {
+            chrome.storage.local.remove(["ku_schedule_custom_colors"]);
+          } else {
+            chrome.storage.local.set({ ku_schedule_custom_colors: currentCustomColors });
+          }
+        } catch (e) { }
+      },
+      onResetAll: () => {
+        currentCustomColors = {};
+        try {
+          chrome.storage.local.remove(["ku_schedule_custom_colors"]);
+        } catch (e) { }
+        applyCustomScheduleStyles(null);
+        updateCustomizer(currentLang);
+      },
+    });
   }
 
   // กำหนดตัวเลือกปีการศึกษาใน Dropdown

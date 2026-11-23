@@ -94,6 +94,12 @@ async function handleExportPNG({
         if (isDarkMode) {
           clonedDoc.documentElement.setAttribute("data-theme", "dark");
         }
+
+        // คัดลอก Custom Colors Style ไปยัง clonedDoc (ถ้ามี)
+        const customStyle = document.getElementById("ku-custom-colors-style");
+        if (customStyle && !clonedDoc.getElementById("ku-custom-colors-style")) {
+          clonedDoc.head.appendChild(customStyle.cloneNode(true));
+        }
         const clonedArea = clonedDoc.getElementById("scheduleCaptureArea");
         if (clonedArea) {
           clonedArea.classList.add("is-exporting");
