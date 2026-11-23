@@ -218,7 +218,7 @@
       <div class="modal-footer">
         <button type="button" id="icsModalCancelBtn" class="btn btn-modal-cancel">ยกเลิก</button>
         <div class="modal-footer-actions">
-          <button type="button" id="icsModalDownloadBtn" class="btn btn-modal-download" title="ดาวน์โหลดไฟล์ .ics สำหรับนำเข้าด้วยตนเอง">
+          <button type="button" id="icsModalDownloadBtn" class="btn btn-modal-confirm" title="ดาวน์โหลดไฟล์ .ics สำหรับนำเข้าด้วยตนเอง">
             <svg class="icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
@@ -226,7 +226,7 @@
             </svg>
             <span id="icsModalDownloadBtnText">ดาวน์โหลด .ics</span>
           </button>
-          <button type="button" id="icsModalSyncBtn" class="btn btn-modal-confirm" title="ซิงค์ตารางเรียนเข้า Google Calendar โดยตรง">
+          <button type="button" id="icsModalSyncBtn" class="btn btn-modal-confirm hidden" title="ซิงค์ตารางเรียนเข้า Google Calendar โดยตรง" style="display: none;">
             <svg class="icon sync-spin-icon spin-icon hidden" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19" />
             </svg>
