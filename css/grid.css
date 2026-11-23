@@ -94,14 +94,119 @@
   flex-shrink: 0;
   box-sizing: border-box;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 5px;
   border-right: 1px solid var(--border-color);
   font-weight: 700;
   font-size: 16px;
   letter-spacing: 0.2px;
   background-color: #f8fafc;
   color: #0f172a;
+}
+
+.day-label-text {
+  line-height: 1.2;
+}
+
+/* Weekend Export PNG Toggle Switch */
+.day-toggle-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background-color: rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.day-toggle-wrap:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.day-toggle-wrap:active {
+  transform: scale(0.95);
+}
+
+[data-theme="dark"] .day-toggle-wrap {
+  background-color: rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .day-toggle-wrap:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.day-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 26px;
+  height: 15px;
+  cursor: pointer;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.day-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.day-toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.28);
+  border-radius: 15px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.day-toggle-slider::before {
+  content: "";
+  position: absolute;
+  height: 11px;
+  width: 11px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.day-toggle-switch input:checked + .day-toggle-slider {
+  background-color: #006633;
+}
+
+[data-theme="dark"] .day-toggle-switch input:checked + .day-toggle-slider {
+  background-color: #10b981;
+}
+
+.day-toggle-switch input:checked + .day-toggle-slider::before {
+  transform: translateX(11px);
+}
+
+.day-toggle-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #0f172a;
+  line-height: 1;
+}
+
+[data-theme="dark"] .day-toggle-badge {
+  color: #ffffff;
+}
+
+.day-toggle-badge.off {
+  opacity: 0.45;
+  text-decoration: line-through;
 }
 
 .day-mon .day-label {

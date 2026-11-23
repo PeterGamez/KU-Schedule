@@ -43,19 +43,73 @@ function initGridHeader(hoursTrack) {
 }
 
 // วาดตารางเรียนและกล่องวิชาเรียนลงบนหน้าเว็บ
-function renderScheduleGrid(courses, daysBody, currentLang) {
+function renderScheduleGrid(courses, daysBody, currentLang, exportDays = { SAT: true, SUN: true }, onToggleExportDay = null) {
   if (!daysBody) return;
   daysBody.innerHTML = "";
   const courseList = Array.isArray(courses) ? courses : [];
 
   DAYS.forEach((dayDef) => {
+    // กรองเฉพาะวิชาของวันนั้นๆ
+    const dayCourses = courseList.filter((c) => normalizeDay(c.day_w) === dayDef.key);
+    const hasCourses = dayCourses.length > 0;
+
     // แถวของแต่ละวัน
     const dayRow = document.createElement("div");
     dayRow.className = `day-row ${dayDef.class}`;
 
     const dayLabel = document.createElement("div");
     dayLabel.className = "day-label";
-    dayLabel.textContent = I18N[currentLang].days[dayDef.key];
+
+    const dayNameSpan = document.createElement("span");
+    dayNameSpan.className = "day-label-text";
+    dayNameSpan.textContent = I18N[currentLang].days[dayDef.key];
+    dayLabel.appendChild(dayNameSpan);
+
+    // แสดงปุ่มเปิด/ปิดเฉพาะวันเสาร์-อาทิตย์ที่ไม่มีวิชาเรียน
+    if ((dayDef.key === "SAT" || dayDef.key === "SUN") && !hasCourses) {
+      const isChecked = exportDays ? exportDays[dayDef.key] !== false : true;
+      const toggleWrap = document.createElement("label");
+      toggleWrap.className = "day-toggle-wrap";
+      toggleWrap.setAttribute(
+        "title",
+        isChecked
+          ? (I18N[currentLang].dayExportToggleOn || "แสดงในรูป PNG (คลิกเพื่อปิด)")
+          : (I18N[currentLang].dayExportToggleOff || "ซ่อนในรูป PNG (คลิกเพื่อเปิด)")
+      );
+
+      toggleWrap.innerHTML = `
+        <span class="day-toggle-switch">
+          <input type="checkbox" class="day-toggle-input" data-day="${dayDef.key}" ${isChecked ? "checked" : ""}>
+          <span class="day-toggle-slider"></span>
+        </span>
+        <span class="day-toggle-badge ${isChecked ? "" : "off"}">PNG</span>
+      `;
+
+      const input = toggleWrap.querySelector(".day-toggle-input");
+      if (input) {
+        input.addEventListener("change", (e) => {
+          const checked = e.target.checked;
+          const badge = toggleWrap.querySelector(".day-toggle-badge");
+          if (badge) badge.classList.toggle("off", !checked);
+          toggleWrap.setAttribute(
+            "title",
+            checked
+              ? (I18N[currentLang].dayExportToggleOn || "แสดงในรูป PNG (คลิกเพื่อปิด)")
+              : (I18N[currentLang].dayExportToggleOff || "ซ่อนในรูป PNG (คลิกเพื่อเปิด)")
+          );
+          if (onToggleExportDay) {
+            onToggleExportDay(dayDef.key, checked);
+          }
+        });
+      }
+
+      toggleWrap.addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+
+      dayLabel.appendChild(toggleWrap);
+    }
+
     dayRow.appendChild(dayLabel);
 
     const trackArea = document.createElement("div");
@@ -70,9 +124,6 @@ function renderScheduleGrid(courses, daysBody, currentLang) {
       bgGrid.appendChild(col);
     }
     trackArea.appendChild(bgGrid);
-
-    // กรองเฉพาะวิชาของวันนั้นๆ
-    const dayCourses = courseList.filter((c) => normalizeDay(c.day_w) === dayDef.key);
 
     dayCourses.forEach((c) => {
       const { startMin, endMin } = getCourseMinutes(c);

@@ -81,6 +81,7 @@ async function initSchedule() {
   let currentAlertKey = null;
   let currentLang = "th";
   let currentTheme = "light";
+  let currentExportDays = { SAT: true, SUN: true };
   let currentIcsFormat = "name_room";
 
   // เริ่มต้นสร้างหัวตาราง โหลดปีการศึกษา และภาษา
@@ -88,7 +89,12 @@ async function initSchedule() {
   updateExportButtonsState();
 
   try {
-    const stored = await chrome.storage.local.get(["ku_schedule_lang", "ku_schedule_ics_format", "ku_schedule_theme"]);
+    const stored = await chrome.storage.local.get([
+      "ku_schedule_lang",
+      "ku_schedule_ics_format",
+      "ku_schedule_theme",
+      "ku_schedule_export_days",
+    ]);
     if (stored?.ku_schedule_lang) {
       currentLang = stored.ku_schedule_lang;
     }
@@ -97,6 +103,12 @@ async function initSchedule() {
     }
     if (stored?.ku_schedule_theme) {
       currentTheme = stored.ku_schedule_theme;
+    }
+    if (stored?.ku_schedule_export_days) {
+      currentExportDays = {
+        SAT: stored.ku_schedule_export_days.SAT !== false,
+        SUN: stored.ku_schedule_export_days.SUN !== false,
+      };
     }
   } catch (e) { }
   setTheme(currentTheme);
@@ -112,7 +124,7 @@ async function initSchedule() {
     if (cached.studentInfo.semester != null && semesterSelect) {
       semesterSelect.value = cached.studentInfo.semester;
     }
-    renderScheduleGrid(cached.courses, daysBody, currentLang);
+    renderScheduleGrid(cached.courses, daysBody, currentLang, currentExportDays, handleToggleExportDay);
     updateExportButtonsState();
   } else {
     initYearOptions();
@@ -138,6 +150,7 @@ async function initSchedule() {
         currentCourses,
         currentStudentInfo,
         currentLang,
+        currentExportDays,
         showAlertKey,
         hideAlert,
         setExportLoading,
@@ -318,6 +331,14 @@ async function initSchedule() {
     });
   }
 
+  // บันทึกและจัดการการเปิด/ปิดวันเสาร์-อาทิตย์สำหรับ Export PNG
+  function handleToggleExportDay(dayKey, isChecked) {
+    currentExportDays[dayKey] = isChecked;
+    try {
+      chrome.storage.local.set({ ku_schedule_export_days: currentExportDays });
+    } catch (e) { }
+  }
+
   // ฟังก์ชันสลับธีม สว่าง (ขาว) / มืด (ดำ)
   function setTheme(theme) {
     currentTheme = theme === "dark" ? "dark" : "light";
@@ -409,7 +430,7 @@ async function initSchedule() {
       showAlertKey(currentAlertKey);
     }
 
-    renderScheduleGrid(currentCourses || [], daysBody, currentLang);
+    renderScheduleGrid(currentCourses || [], daysBody, currentLang, currentExportDays, handleToggleExportDay);
   }
 
   // กำหนดตัวเลือกปีการศึกษาใน Dropdown
@@ -553,7 +574,7 @@ async function initSchedule() {
       const msg = scheduleData?.message?.toLowerCase() || "";
       if (msg.includes("not found")) {
         currentCourses = [];
-        renderScheduleGrid([], daysBody, currentLang);
+        renderScheduleGrid([], daysBody, currentLang, currentExportDays, handleToggleExportDay);
         showAlertKey("NOT_FOUND");
         return;
       }
@@ -566,7 +587,7 @@ async function initSchedule() {
 
       currentCourses = courses;
       await saveCachedSchedule(studentData, courses, cachedEnrolledYears);
-      renderScheduleGrid(courses, daysBody, currentLang);
+      renderScheduleGrid(courses, daysBody, currentLang, currentExportDays, handleToggleExportDay);
 
     } catch (err) {
       console.error(err);

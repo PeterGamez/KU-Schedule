@@ -44,6 +44,7 @@ async function handleExportPNG({
   currentCourses,
   currentStudentInfo,
   currentLang,
+  currentExportDays,
   showAlertKey,
   hideAlert,
   setExportLoading,
@@ -123,6 +124,31 @@ async function handleExportPNG({
         const expC = clonedDoc.getElementById("exportCredit");
         if (expC) {
           expC.textContent = I18N[currentLang].exportCredit;
+        }
+
+        // ตรวจสอบการเปิด/ปิดวันเสาร์และวันอาทิตย์สำหรับ Export PNG (เฉพาะวันที่ไม่มีวิชาเรียน)
+        const courses = Array.isArray(currentCourses) ? currentCourses : [];
+        const hasSatCourses = courses.some((c) => normalizeDay(c.day_w) === "SAT");
+        const hasSunCourses = courses.some((c) => normalizeDay(c.day_w) === "SUN");
+
+        const satInput = document.querySelector('.day-toggle-input[data-day="SAT"]');
+        const sunInput = document.querySelector('.day-toggle-input[data-day="SUN"]');
+        const includeSat = hasSatCourses || (currentExportDays ? currentExportDays.SAT !== false : (satInput ? satInput.checked : true));
+        const includeSun = hasSunCourses || (currentExportDays ? currentExportDays.SUN !== false : (sunInput ? sunInput.checked : true));
+
+        if (!includeSat) {
+          const satRow = clonedDoc.querySelector(".day-sat");
+          if (satRow) satRow.remove();
+        }
+        if (!includeSun) {
+          const sunRow = clonedDoc.querySelector(".day-sun");
+          if (sunRow) sunRow.remove();
+        }
+
+        // ปรับแถวสุดท้ายของตารางใน clonedDoc ให้ไม่มี border-bottom
+        const remainingRows = clonedDoc.querySelectorAll(".day-row");
+        if (remainingRows.length > 0) {
+          remainingRows[remainingRows.length - 1].style.borderBottom = "none";
         }
 
         const measurer = document.createElement("canvas").getContext("2d");
