@@ -147,6 +147,16 @@ async function openGoogleCalendarView() {
         }
 
         await chrome.tabs.update(targetTab.id, updateInfo);
+
+        // หากเปิดหน้า Google Calendar อยู่แล้ว ให้ reload หน้าเว็บเพื่อดึงข้อมูลปฏิทินและกิจกรรมใหม่ทันที
+        if (isMainView && chrome.tabs?.reload) {
+          try {
+            await chrome.tabs.reload(targetTab.id);
+          } catch (reloadErr) {
+            console.warn("Could not reload Google Calendar tab:", reloadErr);
+          }
+        }
+
         if (targetTab.windowId && chrome.windows?.update) {
           await chrome.windows.update(targetTab.windowId, { focused: true });
         }
