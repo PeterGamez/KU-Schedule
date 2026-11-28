@@ -95,7 +95,7 @@ async function initSchedule() {
   let currentTheme = "light";
   let currentExportDays = { SAT: true, SUN: true };
   let currentCustomColors = { light: {}, dark: {} };
-  let currentCalendarColor = { id: "default", hex: null, eventColorId: null, name: "Default" };
+  let currentCalendarColor = { id: "default", hex: null, calendarColorId: null, name: "Default" };
   let currentIcsFormat = "name_room";
 
   // เริ่มต้นสร้างหัวตาราง โหลดปีการศึกษา และภาษา
@@ -288,7 +288,7 @@ async function initSchedule() {
             id: col.id,
             name: col.name,
             hex: col.hex,
-            eventColorId: col.eventColorId,
+            calendarColorId: col.calendarColorId,
           });
         });
 
@@ -298,26 +298,29 @@ async function initSchedule() {
 
     if (gcalDefaultBtn) {
       gcalDefaultBtn.onclick = () => {
-        updateColorUI({ id: "default", hex: null, eventColorId: null, name: "Default" });
+        updateColorUI({ id: "default", hex: null, calendarColorId: null, name: "Default" });
       };
     }
 
     if (gcalCustomColorInput) {
+      if (currentCalendarColor?.id === "custom" && /^#[0-9a-f]{6}$/i.test(currentCalendarColor.hex || "")) {
+        gcalCustomColorInput.value = currentCalendarColor.hex;
+      }
       const handleCustom = (e) => {
         const val = e.target.value;
-        const eventId = typeof getClosestEventColorId === "function" ? getClosestEventColorId(val) : "10";
+        const calendarId = typeof getClosestCalendarColorId === "function" ? getClosestCalendarColorId(val) : null;
         updateColorUI({
           id: "custom",
           name: "Custom",
           hex: val,
-          eventColorId: eventId,
+          calendarColorId: calendarId,
         });
       };
-      gcalCustomColorInput.addEventListener("input", handleCustom);
-      gcalCustomColorInput.addEventListener("change", handleCustom);
+      gcalCustomColorInput.oninput = handleCustom;
+      gcalCustomColorInput.onchange = handleCustom;
     }
 
-    updateColorUI(currentCalendarColor || { id: "default", hex: null, eventColorId: null, name: "Default" });
+    updateColorUI(currentCalendarColor || { id: "default", hex: null, calendarColorId: null, name: "Default" });
   }
 
   function openIcsModal() {
@@ -327,8 +330,8 @@ async function initSchedule() {
     icsModal.classList.remove("hidden");
   }
 
-  function closeIcsModal() {
-    if (!icsModal) return;
+  function closeIcsModal(force = false) {
+    if (!icsModal || (isSyncingGoogleCalendar && !force)) return;
     icsModal.classList.add("hidden");
   }
 
@@ -400,6 +403,7 @@ async function initSchedule() {
       if (icsModalSyncBtn) icsModalSyncBtn.disabled = true;
       if (icsModalDownloadBtn) icsModalDownloadBtn.disabled = true;
       if (icsModalCancelBtn) icsModalCancelBtn.disabled = true;
+      if (icsModalCloseBtn) icsModalCloseBtn.disabled = true;
 
       const t = I18N[currentLang];
       if (icsModalSyncBtnText) icsModalSyncBtnText.textContent = t.icsModalSyncing;
@@ -416,7 +420,7 @@ async function initSchedule() {
           },
         });
 
-        closeIcsModal();
+        closeIcsModal(true);
         showAlertKey("SYNC_GCAL_SUCCESS", true);
       } catch (err) {
         console.error("Google Calendar Sync Error:", err);
@@ -439,7 +443,8 @@ async function initSchedule() {
         if (icsModalSyncBtn) icsModalSyncBtn.disabled = false;
         if (icsModalDownloadBtn) icsModalDownloadBtn.disabled = false;
         if (icsModalCancelBtn) icsModalCancelBtn.disabled = false;
-        if (icsModalSyncBtnText) icsModalSyncBtnText.textContent = t.icsModalSyncBtn;
+        if (icsModalCloseBtn) icsModalCloseBtn.disabled = false;
+        if (icsModalSyncBtnText) icsModalSyncBtnText.textContent = I18N[currentLang].icsModalSyncBtn;
       }
     });
   }
@@ -745,9 +750,9 @@ async function initSchedule() {
       }
 
       const targetYear = (yearSelect && yearSelect.value) || academicYear;
-      const targetSemester = (semesterSelect && semesterSelect.value) || semester;
+      const targetSemester = (semesterSelect && semesterSelect.value !== "") ? semesterSelect.value : semester;
 
-      if (!targetYear || !targetSemester) {
+      if (!targetYear || targetSemester === "" || targetSemester == null) {
         showAlertKey("LOGIN_REQUIRED");
         return;
       }

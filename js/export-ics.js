@@ -1,70 +1,61 @@
 // ส่งออกตารางเรียนเป็นไฟล์ iCalendar (.ics) สำหรับ Google Calendar / Apple Calendar
 
-// รายการ 24 สีมาตรฐานของ Google Calendar (สำหรับปฏิทินและกิจกรรม)
+// รายการ 24 สีมาตรฐานของ Google Calendar (สำหรับปฏิทิน)
 const GOOGLE_CALENDAR_COLORS = [
   // แถวที่ 1 (12 สี)
-  { id: "radicchio", name: "Radicchio", hex: "#ad1457", eventColorId: "11" },
-  { id: "cherry_blossom", name: "Cherry Blossom", hex: "#d81b60", eventColorId: "4" },
-  { id: "flamingo", name: "Flamingo", hex: "#e67c73", eventColorId: "4" },
-  { id: "tomato", name: "Tomato", hex: "#d50000", eventColorId: "11" },
-  { id: "tangerine", name: "Tangerine", hex: "#f4511e", eventColorId: "6" },
-  { id: "pumpkin", name: "Pumpkin", hex: "#ef6c00", eventColorId: "6" },
-  { id: "mango", name: "Mango", hex: "#f09300", eventColorId: "5" },
-  { id: "banana", name: "Banana", hex: "#f6bf26", eventColorId: "5" },
-  { id: "citron", name: "Citron", hex: "#e4c441", eventColorId: "5" },
-  { id: "avocado", name: "Avocado", hex: "#c0ca33", eventColorId: "2" },
-  { id: "pistachio", name: "Pistachio", hex: "#7cb342", eventColorId: "2" },
-  { id: "basil", name: "Basil", hex: "#0b8043", eventColorId: "10" },
+  { id: "radicchio", name: "Radicchio", hex: "#ad1457", calendarColorId: "21" },
+  { id: "cherry_blossom", name: "Cherry Blossom", hex: "#d81b60", calendarColorId: "22" },
+  { id: "flamingo", name: "Flamingo", hex: "#e67c73", calendarColorId: "2" },
+  { id: "tomato", name: "Tomato", hex: "#d50000", calendarColorId: "3" },
+  { id: "tangerine", name: "Tangerine", hex: "#f4511e", calendarColorId: "4" },
+  { id: "pumpkin", name: "Pumpkin", hex: "#ef6c00", calendarColorId: "5" },
+  { id: "mango", name: "Mango", hex: "#f09300", calendarColorId: "6" },
+  { id: "banana", name: "Banana", hex: "#f6bf26", calendarColorId: "12" },
+  { id: "citron", name: "Citron", hex: "#e4c441", calendarColorId: "11" },
+  { id: "avocado", name: "Avocado", hex: "#c0ca33", calendarColorId: "10" },
+  { id: "pistachio", name: "Pistachio", hex: "#7cb342", calendarColorId: "9" },
+  { id: "basil", name: "Basil", hex: "#0b8043", calendarColorId: "8" },
 
   // แถวที่ 2 (12 สี)
-  { id: "eucalyptus", name: "Eucalyptus", hex: "#009688", eventColorId: "2" },
-  { id: "sage", name: "Sage", hex: "#33b679", eventColorId: "2" },
-  { id: "peacock", name: "Peacock", hex: "#039be5", eventColorId: "7" },
-  { id: "cobalt", name: "Cobalt", hex: "#4285f4", eventColorId: "9" },
-  { id: "blueberry", name: "Blueberry", hex: "#3f51b5", eventColorId: "9" },
-  { id: "lavender", name: "Lavender", hex: "#7986cb", eventColorId: "1" },
-  { id: "wisteria", name: "Wisteria", hex: "#b39ddb", eventColorId: "3" },
-  { id: "amethyst", name: "Amethyst", hex: "#9e69af", eventColorId: "3" },
-  { id: "grape", name: "Grape", hex: "#8e24aa", eventColorId: "3" },
-  { id: "cocoa", name: "Cocoa", hex: "#795548", eventColorId: "8" },
-  { id: "graphite", name: "Graphite", hex: "#616161", eventColorId: "8" },
-  { id: "birch", name: "Birch", hex: "#a79b8e", eventColorId: "8" },
+  { id: "eucalyptus", name: "Eucalyptus", hex: "#009688", calendarColorId: "7" },
+  { id: "sage", name: "Sage", hex: "#33b679", calendarColorId: "13" },
+  { id: "peacock", name: "Peacock", hex: "#039be5", calendarColorId: "14" },
+  { id: "cobalt", name: "Cobalt", hex: "#4285f4", calendarColorId: "15" },
+  { id: "blueberry", name: "Blueberry", hex: "#3f51b5", calendarColorId: "16" },
+  { id: "lavender", name: "Lavender", hex: "#7986cb", calendarColorId: "17" },
+  { id: "wisteria", name: "Wisteria", hex: "#b39ddb", calendarColorId: "18" },
+  { id: "amethyst", name: "Amethyst", hex: "#9e69af", calendarColorId: "24" },
+  { id: "grape", name: "Grape", hex: "#8e24aa", calendarColorId: "23" },
+  { id: "cocoa", name: "Cocoa", hex: "#795548", calendarColorId: "1" },
+  { id: "graphite", name: "Graphite", hex: "#616161", calendarColorId: "19" },
+  { id: "birch", name: "Birch", hex: "#a79b8e", calendarColorId: "20" },
 ];
 
-const GCAL_EVENT_COLORS = {
-  "1": "#7986cb", // Lavender
-  "2": "#33b679", // Sage
-  "3": "#8e24aa", // Grape
-  "4": "#e67c73", // Flamingo
-  "5": "#f6bf26", // Banana
-  "6": "#f4511e", // Tangerine
-  "7": "#039be5", // Peacock
-  "8": "#616161", // Graphite
-  "9": "#3f51b5", // Blueberry
-  "10": "#0b8043", // Basil
-  "11": "#d50000", // Tomato
-};
+// ค้นหา Calendar Color ID (1 - 24) ที่ใกล้เคียงกับสี HEX ที่กำหนดมากที่สุด
+function getClosestCalendarColorId(hex) {
+  if (!hex) return null;
+  let clean = String(hex).trim().replace(/^#/, "");
+  if (/^[0-9a-f]{3}$/i.test(clean)) {
+    clean = clean.split("").map((ch) => ch + ch).join("");
+  }
+  if (!/^[0-9a-f]{6}$/i.test(clean)) return null;
 
-// ค้นหา Event Color ID (1 - 11) ที่ใกล้เคียงกับสี HEX ที่กำหนดมากที่สุด
-function getClosestEventColorId(hex) {
-  if (!hex) return "10";
-  const clean = hex.replace("#", "");
-  const r = parseInt(clean.substring(0, 2), 16) || 0;
-  const g = parseInt(clean.substring(2, 4), 16) || 0;
-  const b = parseInt(clean.substring(4, 6), 16) || 0;
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
 
-  let bestId = "10";
+  let bestId = null;
   let minDist = Infinity;
 
-  Object.entries(GCAL_EVENT_COLORS).forEach(([id, targetHex]) => {
-    const tClean = targetHex.replace("#", "");
-    const tr = parseInt(tClean.substring(0, 2), 16) || 0;
-    const tg = parseInt(tClean.substring(2, 4), 16) || 0;
-    const tb = parseInt(tClean.substring(4, 6), 16) || 0;
+  GOOGLE_CALENDAR_COLORS.forEach((col) => {
+    const tClean = col.hex.replace("#", "");
+    const tr = parseInt(tClean.substring(0, 2), 16);
+    const tg = parseInt(tClean.substring(2, 4), 16);
+    const tb = parseInt(tClean.substring(4, 6), 16);
     const dist = Math.pow(r - tr, 2) + Math.pow(g - tg, 2) + Math.pow(b - tb, 2);
     if (dist < minDist) {
       minDist = dist;
-      bestId = id;
+      bestId = col.calendarColorId;
     }
   });
 
@@ -162,7 +153,6 @@ function formatCourseTitle(course, formatKey = "name_room", lang = "th") {
 
 // สร้างเนื้อหาไฟล์ iCalendar (RFC 5545 / RFC 7986) จากรายการวิชาเรียน
 function generateICSContent(courses, lang, titleFormat = "name_room", selectedColor = null) {
-  const dayMap = { MON: 0, TUE: 1, WED: 2, THU: 3, FRI: 4, SAT: 5, SUN: 6 };
   const pad = (n) => String(n).padStart(2, "0");
 
   const now = new Date();

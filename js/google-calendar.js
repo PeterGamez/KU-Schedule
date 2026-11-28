@@ -30,6 +30,36 @@ function removeCachedAuthToken(token) {
   });
 }
 
+// แปลงสีที่เลือกให้เป็น Google Calendar colorId ("1"-"24") รองรับทั้งสีมาตรฐาน สีที่แคชไว้เดิม และสี Custom
+function resolveCalendarColorId(selectedColor) {
+  if (!selectedColor || selectedColor.id === "default") return null;
+
+  const isValidId = (val) => {
+    const num = Number(val);
+    return Number.isInteger(num) && num >= 1 && num <= 24;
+  };
+
+  if (isValidId(selectedColor.calendarColorId)) {
+    return String(Number(selectedColor.calendarColorId));
+  }
+
+  if (selectedColor.id && typeof GOOGLE_CALENDAR_COLORS !== "undefined" && Array.isArray(GOOGLE_CALENDAR_COLORS)) {
+    const matched = GOOGLE_CALENDAR_COLORS.find((col) => col.id === selectedColor.id);
+    if (matched && isValidId(matched.calendarColorId)) {
+      return String(Number(matched.calendarColorId));
+    }
+  }
+
+  if (selectedColor.hex && typeof getClosestCalendarColorId === "function") {
+    const closest = getClosestCalendarColorId(selectedColor.hex);
+    if (isValidId(closest)) {
+      return String(Number(closest));
+    }
+  }
+
+  return null;
+}
+
 // ค้นหาหรือสร้างปฏิทินย่อยสำหรับเทอมนั้นๆ เพื่อความสะดวกในการเปิด/ปิด หรือลบทั้งเทอม
 async function getOrCreateSecondaryCalendar(token, title, lang = "th", selectedColor = null) {
   const headers = {
@@ -81,17 +111,20 @@ async function getOrCreateSecondaryCalendar(token, title, lang = "th", selectedC
 
   const newCal = await createRes.json();
 
-  // กำหนดสีของปฏิทินย่อยใน calendarList (ถ้ามีการเลือกสี)
-  if (selectedColor && selectedColor.hex) {
+  // กำหนดสีของปฏิทินย่อยใน calendarList ด้วย Google Calendar colorId (1-24)
+  const calendarColorId = resolveCalendarColorId(selectedColor);
+  if (calendarColorId) {
     try {
-      await fetch(`https://www.googleapis.com/calendar/v3/users/me/calendarList/${encodeURIComponent(newCal.id)}`, {
+      const colorRes = await fetch(`https://www.googleapis.com/calendar/v3/users/me/calendarList/${encodeURIComponent(newCal.id)}`, {
         method: "PATCH",
         headers,
         body: JSON.stringify({
-          backgroundColor: selectedColor.hex,
-          foregroundColor: "#ffffff",
+          colorId: calendarColorId,
         }),
       });
+      if (!colorRes.ok) {
+        console.warn("Could not patch calendarList color:", colorRes.status, await colorRes.text());
+      }
     } catch (colorErr) {
       console.warn("Could not patch calendarList color:", colorErr);
     }
@@ -192,7 +225,8 @@ async function syncScheduleToGoogleCalendar({
   }
 
   // 2. เตรียมชื่อปฏิทินตามปีและภาคการศึกษา
-  const semText = formatSemester(studentInfo?.semester || "1", lang);
+  const semKey = (studentInfo?.semester !== "" && studentInfo?.semester != null) ? String(studentInfo.semester) : "1";
+  const semText = formatSemester(semKey, lang);
   const yearText = studentInfo?.academicYear || "";
   const calTitle = lang === "en"
     ? `KU Schedule (${yearText}/${semText})`
