@@ -117,20 +117,10 @@ async function handleExportPNG({
           clonedArea.style.boxShadow = "none";
         }
 
-        const expH = clonedDoc.getElementById("exportHeader");
-        if (expH) {
-          expH.style.display = "flex";
-          expH.style.borderRadius = "8px 8px 0 0";
-        }
         const schedTbl = clonedDoc.getElementById("scheduleTable");
         if (schedTbl) {
           schedTbl.style.borderRadius = "0";
           schedTbl.style.borderTop = "none";
-        }
-        const expF = clonedDoc.getElementById("exportFooter");
-        if (expF) {
-          expF.style.display = "flex";
-          expF.style.borderRadius = "0 0 8px 8px";
         }
         const expC = clonedDoc.getElementById("exportCredit");
         if (expC) {

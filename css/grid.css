@@ -1,3 +1,27 @@
+:root {
+  --day-mon-bg: #FACC15;
+  --course-mon-bg: #FEF08A;
+  --course-mon-border: #CA8A04;
+  --day-tue-bg: #F472B6;
+  --course-tue-bg: #FBCFE8;
+  --course-tue-border: #DB2777;
+  --day-wed-bg: #4ADE80;
+  --course-wed-bg: #BBF7D0;
+  --course-wed-border: #16A34A;
+  --day-thu-bg: #FB923C;
+  --course-thu-bg: #FED7AA;
+  --course-thu-border: #EA580C;
+  --day-fri-bg: #38BDF8;
+  --course-fri-bg: #BAE6FD;
+  --course-fri-border: #0284C7;
+  --day-sat-bg: #C084FC;
+  --course-sat-bg: #E9D5FF;
+  --course-sat-border: #9333EA;
+  --day-sun-bg: #F87171;
+  --course-sun-bg: #FECACA;
+  --course-sun-border: #DC2626;
+}
+
 .schedule-container {
   padding: 18px 24px;
 }
@@ -210,37 +234,37 @@
 }
 
 .day-mon .day-label {
-  background-color: #FACC15;
+  background-color: var(--day-mon-bg);
   color: #0f172a;
 }
 
 .day-tue .day-label {
-  background-color: #F472B6;
+  background-color: var(--day-tue-bg);
   color: #0f172a;
 }
 
 .day-wed .day-label {
-  background-color: #4ADE80;
+  background-color: var(--day-wed-bg);
   color: #0f172a;
 }
 
 .day-thu .day-label {
-  background-color: #FB923C;
+  background-color: var(--day-thu-bg);
   color: #0f172a;
 }
 
 .day-fri .day-label {
-  background-color: #38BDF8;
+  background-color: var(--day-fri-bg);
   color: #0f172a;
 }
 
 .day-sat .day-label {
-  background-color: #C084FC;
+  background-color: var(--day-sat-bg);
   color: #0f172a;
 }
 
 .day-sun .day-label {
-  background-color: #F87171;
+  background-color: var(--day-sun-bg);
   color: #0f172a;
 }
 
@@ -300,44 +324,44 @@
 
 /* Light Theme Course Block Colors */
 .course-mon {
-  background-color: #FEF08A;
-  border-left-color: #CA8A04;
+  background-color: var(--course-mon-bg);
+  border-left-color: var(--course-mon-border);
   color: #0f172a;
 }
 
 .course-tue {
-  background-color: #FBCFE8;
-  border-left-color: #DB2777;
+  background-color: var(--course-tue-bg);
+  border-left-color: var(--course-tue-border);
   color: #0f172a;
 }
 
 .course-wed {
-  background-color: #BBF7D0;
-  border-left-color: #16A34A;
+  background-color: var(--course-wed-bg);
+  border-left-color: var(--course-wed-border);
   color: #0f172a;
 }
 
 .course-thu {
-  background-color: #FED7AA;
-  border-left-color: #EA580C;
+  background-color: var(--course-thu-bg);
+  border-left-color: var(--course-thu-border);
   color: #0f172a;
 }
 
 .course-fri {
-  background-color: #BAE6FD;
-  border-left-color: #0284C7;
+  background-color: var(--course-fri-bg);
+  border-left-color: var(--course-fri-border);
   color: #0f172a;
 }
 
 .course-sat {
-  background-color: #E9D5FF;
-  border-left-color: #9333EA;
+  background-color: var(--course-sat-bg);
+  border-left-color: var(--course-sat-border);
   color: #0f172a;
 }
 
 .course-sun {
-  background-color: #FECACA;
-  border-left-color: #DC2626;
+  background-color: var(--course-sun-bg);
+  border-left-color: var(--course-sun-border);
   color: #0f172a;
 }
 
@@ -381,6 +405,30 @@
 /* ==========================================================================
    Dark Theme Overrides for Grid
    ========================================================================== */
+[data-theme="dark"] {
+  --day-mon-bg: #ca8a04;
+  --course-mon-bg: #2e2305;
+  --course-mon-border: #facc15;
+  --day-tue-bg: #db2777;
+  --course-tue-bg: #330b20;
+  --course-tue-border: #f472b6;
+  --day-wed-bg: #16a34a;
+  --course-wed-bg: #082816;
+  --course-wed-border: #4ade80;
+  --day-thu-bg: #ea580c;
+  --course-thu-bg: #311507;
+  --course-thu-border: #fb923c;
+  --day-fri-bg: #0284c7;
+  --course-fri-bg: #062330;
+  --course-fri-border: #38bdf8;
+  --day-sat-bg: #9333ea;
+  --course-sat-bg: #230d33;
+  --course-sat-border: #c084fc;
+  --day-sun-bg: #dc2626;
+  --course-sun-bg: #300c0c;
+  --course-sun-border: #f87171;
+}
+
 [data-theme="dark"] .schedule-table {
   background-color: #0d0d0d;
   border-color: #262626;
@@ -421,37 +469,15 @@
 }
 
 [data-theme="dark"] .day-mon .day-label {
-  background-color: #ca8a04;
   color: #000000;
 }
 
-[data-theme="dark"] .day-tue .day-label {
-  background-color: #db2777;
-  color: #ffffff;
-}
-
-[data-theme="dark"] .day-wed .day-label {
-  background-color: #16a34a;
-  color: #ffffff;
-}
-
-[data-theme="dark"] .day-thu .day-label {
-  background-color: #ea580c;
-  color: #ffffff;
-}
-
-[data-theme="dark"] .day-fri .day-label {
-  background-color: #0284c7;
-  color: #ffffff;
-}
-
-[data-theme="dark"] .day-sat .day-label {
-  background-color: #9333ea;
-  color: #ffffff;
-}
-
+[data-theme="dark"] .day-tue .day-label,
+[data-theme="dark"] .day-wed .day-label,
+[data-theme="dark"] .day-thu .day-label,
+[data-theme="dark"] .day-fri .day-label,
+[data-theme="dark"] .day-sat .day-label,
 [data-theme="dark"] .day-sun .day-label {
-  background-color: #dc2626;
   color: #ffffff;
 }
 
@@ -468,44 +494,30 @@
 }
 
 [data-theme="dark"] .course-mon {
-  background-color: #2e2305;
-  border-left-color: #facc15;
   color: #fef08a;
 }
 
 [data-theme="dark"] .course-tue {
-  background-color: #330b20;
-  border-left-color: #f472b6;
   color: #fbcfe8;
 }
 
 [data-theme="dark"] .course-wed {
-  background-color: #082816;
-  border-left-color: #4ade80;
   color: #bbf7d0;
 }
 
 [data-theme="dark"] .course-thu {
-  background-color: #311507;
-  border-left-color: #fb923c;
   color: #fed7aa;
 }
 
 [data-theme="dark"] .course-fri {
-  background-color: #062330;
-  border-left-color: #38bdf8;
   color: #e0f2fe;
 }
 
 [data-theme="dark"] .course-sat {
-  background-color: #230d33;
-  border-left-color: #c084fc;
   color: #e9d5ff;
 }
 
 [data-theme="dark"] .course-sun {
-  background-color: #300c0c;
-  border-left-color: #f87171;
   color: #fecaca;
 }
 

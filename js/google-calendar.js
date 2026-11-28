@@ -152,56 +152,6 @@ async function insertCalendarEvent(token, calendarId, eventData) {
   return await res.json();
 }
 
-// สลับไปยังแท็บ Google Calendar หรือสร้างแท็บใหม่ (ไปยังหน้าปฏิทินหลักเสมอ)
-async function openGoogleCalendarView() {
-  const defaultUrl = "https://calendar.google.com/calendar/r";
-  try {
-    if (typeof chrome !== "undefined" && chrome?.tabs?.query) {
-      const gcalTabs = await chrome.tabs.query({ url: "https://calendar.google.com/*" });
-      if (gcalTabs && gcalTabs.length > 0) {
-        const targetTab = gcalTabs[0];
-
-        // ตรวจสอบ account index (เช่น /u/0/, /u/1/) เพื่อคง Google account เดิม
-        const userMatch = targetTab.url ? targetTab.url.match(/\/calendar\/u\/(\d+)\//) : null;
-        const mainUrl = userMatch
-          ? `https://calendar.google.com/calendar/u/${userMatch[1]}/r`
-          : defaultUrl;
-
-        // บังคับเปลี่ยน URL ไปหน้าปฏิทินหลักเสมอ หากแท็บเดิมไม่ได้อยู่ที่หน้าหลัก (เช่น อยู่หน้า settings/export)
-        const isMainView = targetTab.url && (
-          targetTab.url.endsWith("/calendar/r") ||
-          targetTab.url.endsWith("/calendar/r/") ||
-          /\/calendar\/u\/\d+\/r\/?$/.test(targetTab.url)
-        );
-
-        const updateInfo = { active: true };
-        if (!isMainView) {
-          updateInfo.url = mainUrl;
-        }
-
-        await chrome.tabs.update(targetTab.id, updateInfo);
-
-        // หากเปิดหน้า Google Calendar อยู่แล้ว ให้ reload หน้าเว็บเพื่อดึงข้อมูลปฏิทินและกิจกรรมใหม่ทันที
-        if (isMainView && chrome.tabs?.reload) {
-          try {
-            await chrome.tabs.reload(targetTab.id);
-          } catch (reloadErr) {
-            console.warn("Could not reload Google Calendar tab:", reloadErr);
-          }
-        }
-
-        if (targetTab.windowId && chrome.windows?.update) {
-          await chrome.windows.update(targetTab.windowId, { focused: true });
-        }
-        return;
-      }
-      await chrome.tabs.create({ url: defaultUrl });
-      return;
-    }
-  } catch (e) { }
-  window.open(defaultUrl, "_blank");
-}
-
 // ซิงค์ตารางเรียนทั้งหมดเข้าสู่ Google Calendar โดยตรง
 async function syncScheduleToGoogleCalendar({
   courses,
@@ -283,7 +233,14 @@ async function syncScheduleToGoogleCalendar({
   }
 
   // 4. เปิดแท็บ Google Calendar เมื่อเสร็จสิ้น
-  await openGoogleCalendarView();
+  await openGoogleCalendarTab({
+    pathSuffix: "/r",
+    isOnTarget: (url) =>
+      url.endsWith("/calendar/r") ||
+      url.endsWith("/calendar/r/") ||
+      /\/calendar\/u\/\d+\/r\/?$/.test(url),
+    reloadIfOnTarget: true,
+  });
 
   return { success: true, count: insertedCount, calendarTitle: calTitle };
 }

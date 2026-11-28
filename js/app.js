@@ -543,8 +543,8 @@ async function initSchedule() {
     if (icsModalSubtitle) icsModalSubtitle.textContent = t.icsModalSubtitle;
     if (icsFormatLabel) icsFormatLabel.textContent = t.icsFormatLabel;
     if (icsColorLabel) icsColorLabel.textContent = t.icsColorLabel;
-    if (gcalDefaultText) gcalDefaultText.textContent = t.gcalColors?.default || t.icsColorDefault;
-    if (gcalCustomColorBtn) gcalCustomColorBtn.title = t.gcalColors?.custom || t.icsColorCustom;
+    if (gcalDefaultText) gcalDefaultText.textContent = t.gcalColors.default;
+    if (gcalCustomColorBtn) gcalCustomColorBtn.title = t.gcalColors.custom;
     if (icsPreviewLabel) icsPreviewLabel.textContent = t.icsPreviewLabel;
     if (icsModalCancelBtn) icsModalCancelBtn.textContent = t.icsCancelBtn;
     if (icsModalDownloadBtnText) icsModalDownloadBtnText.textContent = t.icsModalDownloadBtn;
@@ -596,7 +596,7 @@ async function initSchedule() {
     const t = I18N[lang];
     if (customizerTitleText) customizerTitleText.textContent = t.customizerTitle;
     if (customizerSubtitle) customizerSubtitle.textContent = t.customizerSubtitle;
-    if (resetColorsBtnText) resetColorsBtnText.textContent = t.customizerResetAllBtn || t.customizerResetBtn;
+    if (resetColorsBtnText) resetColorsBtnText.textContent = t.customizerResetAllBtn;
 
     initCustomizerUI({
       gridContainer: customizerDaysGrid,

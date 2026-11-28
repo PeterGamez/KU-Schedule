@@ -1,26 +1,16 @@
 // ระบบปรับแต่งสีตารางเรียน (KU Schedule Color Customizer)
 
-// สีเริ่มต้นของแต่ละวันสำหรับแต่ละธีม
-const THEME_DEFAULT_COLORS = {
-  light: {
-    MON: { dayBg: "#FACC15", courseBg: "#FEF08A", courseBorder: "#CA8A04" },
-    TUE: { dayBg: "#F472B6", courseBg: "#FBCFE8", courseBorder: "#DB2777" },
-    WED: { dayBg: "#4ADE80", courseBg: "#BBF7D0", courseBorder: "#16A34A" },
-    THU: { dayBg: "#FB923C", courseBg: "#FED7AA", courseBorder: "#EA580C" },
-    FRI: { dayBg: "#38BDF8", courseBg: "#BAE6FD", courseBorder: "#0284C7" },
-    SAT: { dayBg: "#C084FC", courseBg: "#E9D5FF", courseBorder: "#9333EA" },
-    SUN: { dayBg: "#F87171", courseBg: "#FECACA", courseBorder: "#DC2626" },
-  },
-  dark: {
-    MON: { dayBg: "#ca8a04", courseBg: "#2e2305", courseBorder: "#facc15" },
-    TUE: { dayBg: "#db2777", courseBg: "#330b20", courseBorder: "#f472b6" },
-    WED: { dayBg: "#16a34a", courseBg: "#082816", courseBorder: "#4ade80" },
-    THU: { dayBg: "#ea580c", courseBg: "#311507", courseBorder: "#fb923c" },
-    FRI: { dayBg: "#0284c7", courseBg: "#062330", courseBorder: "#38bdf8" },
-    SAT: { dayBg: "#9333ea", courseBg: "#230d33", courseBorder: "#c084fc" },
-    SUN: { dayBg: "#dc2626", courseBg: "#300c0c", courseBorder: "#f87171" },
-  },
-};
+// อ่านสีเริ่มต้นของแต่ละวันจากตัวแปร CSS ใน grid.css ตามธีมปัจจุบัน
+function getThemeDefaultDayColors(dayKey, rootStyles = null) {
+  const styles = rootStyles || getComputedStyle(document.documentElement);
+  const k = String(dayKey).toLowerCase();
+  const readVar = (name, fallback) => styles.getPropertyValue(name).trim() || fallback;
+  return {
+    dayBg: readVar(`--day-${k}-bg`, "#ffffff"),
+    courseBg: readVar(`--course-${k}-bg`, "#ffffff"),
+    courseBorder: readVar(`--course-${k}-border`, "#000000"),
+  };
+}
 
 // ฟังก์ชันแปลงโครงสร้าง customColors ให้มีทั้ง light และ dark เสมอ
 function normalizeCustomColors(raw) {
@@ -175,7 +165,7 @@ function initCustomizerUI({
 
   const t = I18N[currentLang];
   const isDark = currentTheme === "dark";
-  const themeDefaults = THEME_DEFAULT_COLORS[isDark ? "dark" : "light"];
+  const rootStyles = getComputedStyle(document.documentElement);
 
   if (!customColors || typeof customColors !== "object") {
     customColors = { light: {}, dark: {} };
@@ -191,7 +181,7 @@ function initCustomizerUI({
 
   DAYS.forEach((dayDef) => {
     const key = dayDef.key;
-    const defaults = themeDefaults[key];
+    const defaults = getThemeDefaultDayColors(key, rootStyles);
     const userColors = activeThemeColors[key];
     const current = userColors ? { ...defaults, ...userColors } : { ...defaults };
 

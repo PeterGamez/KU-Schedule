@@ -109,3 +109,46 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+// เปิดหรือสลับไปยังแท็บ Google Calendar โดยรักษา account index (/u/N/) เดิม
+async function openGoogleCalendarTab({ pathSuffix = "/r", isOnTarget = null, reloadIfOnTarget = false } = {}) {
+  const defaultUrl = `https://calendar.google.com/calendar${pathSuffix}`;
+  try {
+    if (typeof chrome !== "undefined" && chrome?.tabs?.query) {
+      const gcalTabs = await chrome.tabs.query({ url: "https://calendar.google.com/*" });
+      if (gcalTabs && gcalTabs.length > 0) {
+        const targetTab = gcalTabs[0];
+        const userMatch = targetTab.url ? targetTab.url.match(/\/calendar\/u\/(\d+)\//) : null;
+        const targetUrl = userMatch
+          ? `https://calendar.google.com/calendar/u/${userMatch[1]}${pathSuffix}`
+          : defaultUrl;
+
+        const alreadyThere = Boolean(
+          targetTab.url && (isOnTarget ? isOnTarget(targetTab.url) : targetTab.url.includes(pathSuffix))
+        );
+        const updateInfo = { active: true };
+        if (!alreadyThere) {
+          updateInfo.url = targetUrl;
+        }
+
+        await chrome.tabs.update(targetTab.id, updateInfo);
+        if (alreadyThere && reloadIfOnTarget && chrome.tabs?.reload) {
+          try {
+            await chrome.tabs.reload(targetTab.id);
+          } catch (reloadErr) {
+            console.warn("Could not reload Google Calendar tab:", reloadErr);
+          }
+        }
+        if (targetTab.windowId && chrome.windows?.update) {
+          await chrome.windows.update(targetTab.windowId, { focused: true });
+        }
+        return;
+      }
+      await chrome.tabs.create({ url: defaultUrl });
+      return;
+    }
+  } catch (err) {
+    console.warn("Open Google Calendar Error:", err);
+  }
+  window.open(defaultUrl, "_blank");
+}

@@ -26,7 +26,6 @@ const I18N = {
     dayExportToggleOff: "ซ่อนในรูป PNG (คลิกเพื่อเปิด)",
     customizerTitle: "ปรับแต่งสีตารางเรียน",
     customizerSubtitle: "ปรับแต่งสีรายวัน สีเส้นรายวิชา และสีพื้นหลังรายวิชา",
-    customizerResetBtn: "กลับเป็นค่าเริ่มต้น",
     customizerResetAllBtn: "รีเซ็ตทั้งหมด",
     customizerResetDayBtn: "รีเซ็ต",
     customizerResetDayTitle: "รีเซ็ตสีเฉพาะวันนี้กลับเป็นค่าเริ่มต้น",
@@ -38,8 +37,6 @@ const I18N = {
     icsModalSubtitle: "เลือกรูปแบบชื่อรายการที่จะแสดงใน Google Calendar",
     icsFormatLabel: "รูปแบบชื่อวิชา:",
     icsColorLabel: "สีปฏิทิน (Google Calendar):",
-    icsColorDefault: "ค่าเริ่มต้น",
-    icsColorCustom: "กำหนดสีเอง",
     gcalColors: {
       default: "ค่าเริ่มต้น",
       custom: "กำหนดสีเอง",
@@ -143,7 +140,6 @@ const I18N = {
     dayExportToggleOff: "Hidden in PNG export (click to show)",
     customizerTitle: "Customize Schedule Colors",
     customizerSubtitle: "Customize day, course background, and border colors",
-    customizerResetBtn: "Reset to Default",
     customizerResetAllBtn: "Reset All",
     customizerResetDayBtn: "Reset",
     customizerResetDayTitle: "Reset this day back to default colors",
@@ -155,8 +151,6 @@ const I18N = {
     icsModalSubtitle: "Choose how course titles appear in Google Calendar",
     icsFormatLabel: "Course Title Format:",
     icsColorLabel: "Calendar Color (Google Calendar):",
-    icsColorDefault: "Default",
-    icsColorCustom: "Custom Color",
     gcalColors: {
       default: "Default",
       custom: "Custom Color",

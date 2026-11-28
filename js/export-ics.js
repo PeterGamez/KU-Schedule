@@ -237,45 +237,6 @@ function generateICSContent(courses, lang, titleFormat = "name_room", selectedCo
   return icsLines.join("\r\n");
 }
 
-// เปิดหรือสลับไปยังแท็บ Google Calendar Import (หากเปิดอยู่แล้วจะไม่เปิดแท็บซ้ำแต่จะสลับและเปลี่ยนหน้าแทน)
-async function openGoogleCalendarImport() {
-  const defaultUrl = "https://calendar.google.com/calendar/r/settings/export";
-
-  try {
-    if (typeof chrome !== "undefined" && chrome?.tabs?.query) {
-      const gcalTabs = await chrome.tabs.query({ url: "https://calendar.google.com/*" });
-      if (gcalTabs && gcalTabs.length > 0) {
-        const targetTab = gcalTabs[0];
-
-        // ตรวจสอบ account index (เช่น /u/0/, /u/1/) เพื่อคง Google account เดิมที่เปิดอยู่
-        const userMatch = targetTab.url ? targetTab.url.match(/\/calendar\/u\/(\d+)\//) : null;
-        const targetUrl = userMatch
-          ? `https://calendar.google.com/calendar/u/${userMatch[1]}/r/settings/export`
-          : defaultUrl;
-
-        const isAlreadyExportPage = targetTab.url && targetTab.url.includes("/settings/export");
-        const updateInfo = { active: true };
-        if (!isAlreadyExportPage) {
-          updateInfo.url = targetUrl;
-        }
-
-        await chrome.tabs.update(targetTab.id, updateInfo);
-        if (targetTab.windowId && chrome.windows?.update) {
-          await chrome.windows.update(targetTab.windowId, { focused: true });
-        }
-        return;
-      }
-
-      await chrome.tabs.create({ url: defaultUrl });
-      return;
-    }
-  } catch (err) {
-    console.error("Open Google Calendar Error:", err);
-  }
-
-  window.open(defaultUrl, "_blank");
-}
-
 async function handleExportICS({
   currentCourses,
   currentStudentInfo,
@@ -311,7 +272,10 @@ async function handleExportICS({
     setTimeout(() => URL.revokeObjectURL(url), 2000);
 
     // สลับไปยังหน้า Google Calendar Import (หากเปิดอยู่แล้วจะไม่เปิดแท็บซ้ำแต่จะสลับและเปลี่ยนหน้าแทน)
-    await openGoogleCalendarImport();
+    await openGoogleCalendarTab({
+      pathSuffix: "/r/settings/export",
+      isOnTarget: (url) => url.includes("/settings/export"),
+    });
 
     if (exportIcsBtnText) {
       exportIcsBtnText.textContent = I18N[currentLang].exportIcsBtnSuccess;
