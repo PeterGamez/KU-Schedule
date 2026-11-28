@@ -763,8 +763,6 @@ async function initSchedule() {
         semester: targetSemester,
       };
 
-      currentStudentInfo = studentData;
-
       await sendPublicCBP(stdId, headers, targetTab);
 
       const { status, scheduleData } = await fetchGroupCourse(targetYear, targetSemester, stdId, headers, targetTab);
@@ -788,6 +786,7 @@ async function initSchedule() {
         return;
       }
 
+      currentStudentInfo = studentData;
       currentCourses = courses;
       await saveCachedSchedule(studentData, courses, cachedEnrolledYears);
       renderScheduleGrid(courses, daysBody, currentLang, currentExportDays, handleToggleExportDay);
