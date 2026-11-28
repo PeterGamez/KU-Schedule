@@ -2,9 +2,10 @@
 
 // แปลงข้อมูลผลลัพธ์จาก API getEnrollYear ให้เป็น Array ของปี พ.ศ. (เรียงจากปีล่าสุดลงมา)
 function parseEnrollYears(data) {
-  if (!data?.enrollYear) return [];
+  if (!Array.isArray(data?.enrollYear)) return [];
   return data.enrollYear
-    .map((item) => Number(item.year))
+    .map((item) => Number(item?.year))
+    .filter((y) => Number.isFinite(y))
     .sort((a, b) => b - a);
 }
 
@@ -75,7 +76,9 @@ async function fetchGroupCourse(targetYear, targetSemester, stdId, headers, targ
     const res = await fetch(url, { ...fetchOpts, credentials: "include" });
     let scheduleData = null;
     try { scheduleData = await res.json(); } catch (e) {}
-    return { status: res.status, scheduleData };
+    if (res.ok || res.status === 401 || scheduleData) {
+      return { status: res.status, scheduleData };
+    }
   } catch (e) {}
 
   const tabRes = await tabFetch(targetTab, url, fetchOpts);

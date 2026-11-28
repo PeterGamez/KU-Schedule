@@ -16,8 +16,11 @@ function getCourseMinutes(c) {
 // แปลงข้อความแสดงเวลา (เช่น "09:00", "9:00") เป็นนาที
 function parseTime(timeStr) {
   if (!timeStr) return null;
-  const [h, m] = timeStr.split(":");
-  return parseInt(h, 10) * 60 + parseInt(m, 10);
+  const [hStr, mStr] = String(timeStr).split(":");
+  const h = parseInt(hStr, 10);
+  const m = parseInt(mStr, 10);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
 }
 
 // แปลงรหัสภาคเรียนเป็นข้อความแสดงผล (0 = ภาคฤดูร้อน, 1 = ภาคต้น, 2 = ภาคปลาย)

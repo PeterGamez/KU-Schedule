@@ -136,7 +136,6 @@ async function initSchedule() {
   } catch (e) { }
   setTheme(currentTheme);
   setLanguage(currentLang);
-  updateCustomizer(currentLang);
 
   // โหลดแคชเดิม (ถ้ามี)
   const cached = await loadCachedSchedule();

@@ -205,7 +205,8 @@ function generateICSContent(courses, lang, titleFormat = "name_room", selectedCo
         .replace(/,/g, "\\,")
         .replace(/\r?\n/g, "\\n");
 
-    const uid = `ku-${c.section_id}-${timing.year}${timing.month}${timing.day}@kuschedule`;
+    const safeSectionId = String(c.section_id ?? "").replace(/[^a-zA-Z0-9_-]/g, "");
+    const uid = `ku-${safeSectionId}-${timing.year}${timing.month}${timing.day}@kuschedule`;
 
     icsLines.push(
       "BEGIN:VEVENT",

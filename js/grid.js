@@ -15,16 +15,6 @@ const DAYS = [
   { key: "SUN", class: "day-sun" },
 ];
 
-const DAY_THEMES = {
-  MON: { bg: "#FEF08A", border: "#CA8A04" },
-  TUE: { bg: "#FBCFE8", border: "#DB2777" },
-  WED: { bg: "#BBF7D0", border: "#16A34A" },
-  THU: { bg: "#FED7AA", border: "#EA580C" },
-  FRI: { bg: "#BAE6FD", border: "#0284C7" },
-  SAT: { bg: "#E9D5FF", border: "#9333EA" },
-  SUN: { bg: "#FECACA", border: "#DC2626" },
-};
-
 // สร้างส่วนหัวตารางแสดงช่วงเวลาแต่ละชั่วโมง (เช่น 08:00 - 09:00)
 function initGridHeader(hoursTrack) {
   if (!hoursTrack) return;
@@ -129,14 +119,20 @@ function renderScheduleGrid(courses, daysBody, currentLang, exportDays = { SAT: 
       const { startMin, endMin } = getCourseMinutes(c);
       if (startMin === null || endMin === null) return;
 
-      // คำนวณตำแหน่งเริ่มต้น (left) และความกว้าง (width) ในรูปแบบเปอร์เซ็นต์ (อิงจาก 08:00 = 480 นาที)
-      const left = ((startMin - 480) / TOTAL_MINUTES) * 100;
-      const width = ((endMin - startMin) / TOTAL_MINUTES) * 100;
+      const minStart = START_HOUR * 60;
+      const maxEnd = END_HOUR * 60;
+      const clampedStart = Math.max(minStart, startMin);
+      const clampedEnd = Math.min(maxEnd, endMin);
+      if (clampedEnd <= clampedStart) return;
+
+      // คำนวณตำแหน่งเริ่มต้น (left) และความกว้าง (width) ในรูปแบบเปอร์เซ็นต์
+      const left = ((clampedStart - minStart) / TOTAL_MINUTES) * 100;
+      const width = ((clampedEnd - clampedStart) / TOTAL_MINUTES) * 100;
 
       const block = document.createElement("div");
       block.className = `course-block course-${dayDef.key.toLowerCase()}`;
-      block.style.left = `calc(${Math.max(0, left)}% + 3px)`;
-      block.style.width = `calc(${Math.min(100 - left, width)}% - 6px)`;
+      block.style.left = `calc(${left}% + 3px)`;
+      block.style.width = `calc(${width}% - 6px)`;
 
       const subjectName = getCourseName(c, currentLang);
       const room = getCourseRoom(c, currentLang);

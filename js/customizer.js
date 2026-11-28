@@ -22,9 +22,6 @@ const THEME_DEFAULT_COLORS = {
   },
 };
 
-// เพื่อ backward compatibility สำหรับที่ที่อาจอ้างอิง DEFAULT_DAY_COLORS
-const DEFAULT_DAY_COLORS = THEME_DEFAULT_COLORS.light;
-
 // ฟังก์ชันแปลงโครงสร้าง customColors ให้มีทั้ง light และ dark เสมอ
 function normalizeCustomColors(raw) {
   if (!raw || typeof raw !== "object") {
@@ -172,7 +169,6 @@ function initCustomizerUI({
   onColorChange,
   onResetDay,
   onResetAll,
-  onReset,
 }) {
   if (!gridContainer) return;
   gridContainer.innerHTML = "";
@@ -327,8 +323,6 @@ function initCustomizerUI({
     resetBtn.onclick = () => {
       if (onResetAll) {
         onResetAll();
-      } else if (onReset) {
-        onReset();
       }
     };
   }

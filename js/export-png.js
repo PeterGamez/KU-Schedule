@@ -55,6 +55,11 @@ async function handleExportPNG({
     return;
   }
 
+  if (typeof html2canvas !== "function") {
+    showAlertKey("EXPORT_LIB_MISSING");
+    return;
+  }
+
   hideAlert();
   setExportLoading(true);
 
