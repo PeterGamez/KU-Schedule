@@ -397,7 +397,10 @@ async function initSchedule() {
 
       isSyncingGoogleCalendar = true;
       if (modalSyncProgress) modalSyncProgress.classList.remove("hidden");
-      if (syncSpinIcon) syncSpinIcon.classList.remove("hidden");
+      if (syncSpinIcon) {
+        syncSpinIcon.classList.remove("hidden");
+        syncSpinIcon.classList.add("spinning");
+      }
       if (gcalIcon) gcalIcon.classList.add("hidden");
       if (icsModalSyncBtn) icsModalSyncBtn.disabled = true;
       if (icsModalDownloadBtn) icsModalDownloadBtn.disabled = true;
@@ -437,7 +440,10 @@ async function initSchedule() {
       } finally {
         isSyncingGoogleCalendar = false;
         if (modalSyncProgress) modalSyncProgress.classList.add("hidden");
-        if (syncSpinIcon) syncSpinIcon.classList.add("hidden");
+        if (syncSpinIcon) {
+          syncSpinIcon.classList.add("hidden");
+          syncSpinIcon.classList.remove("spinning");
+        }
         if (gcalIcon) gcalIcon.classList.remove("hidden");
         if (icsModalSyncBtn) icsModalSyncBtn.disabled = false;
         if (icsModalDownloadBtn) icsModalDownloadBtn.disabled = false;
